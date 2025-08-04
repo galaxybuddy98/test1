@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # MSA Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: msa-gateway-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=8000
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./app:/app/app
+      - ./requirements.txt:/app/requirements.txt
+    networks:
+      - msa-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # User Service
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile.dev
+    container_name: user-service-dev
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=user-service
+      - SERVICE_PORT=8001
+      - ENVIRONMENT=development
+    volumes:
+      - ./services/user-service:/app
+    networks:
+      - msa-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Order Service
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile.dev
+    container_name: order-service-dev
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=order-service
+      - SERVICE_PORT=8002
+      - ENVIRONMENT=development
+    volumes:
+      - ./services/order-service:/app
+    networks:
+      - msa-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Product Service
+  product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile.dev
+    container_name: product-service-dev
+    ports:
+      - "8003:8003"
+    environment:
+      - SERVICE_NAME=product-service
+      - SERVICE_PORT=8003
+      - ENVIRONMENT=development
+    volumes:
+      - ./services/product-service:/app
+    networks:
+      - msa-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis (서비스 디스커버리 캐싱용)
+  redis:
+    image: redis:7-alpine
+    container_name: msa-redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - msa-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx (로드 밸런서)
+  nginx:
+    image: nginx:alpine
+    container_name: msa-nginx-dev
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - msa-network
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+networks:
+  msa-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis-data:
