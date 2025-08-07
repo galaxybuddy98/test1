@@ -1,10 +1,93 @@
-name: eripotter # 팀 프로젝트명으로 변경
-
 services:
-  # MSA Gateway
+  account-service:
+    build: ./service/account-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./service/account-service/app:/app/app
+      - ./service/account-service/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./service/account-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app-network
+
+  post-service:
+    build: ./service/post-service
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./service/post-service/app:/app/app
+      - ./service/post-service/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./service/post-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app-network
+
+  contract-service:
+    build: ./service/contract-service
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./service/contract-service/app:/app/app
+      - ./service/contract-service/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./service/contract-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app-network
+
+  finance-service:
+    build: ./service/finance-service
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./service/finance-service/app:/app/app
+      - ./service/finance-service/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./service/finance-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  product-service:
+    build: ./service/product-service
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./service/product-service/app:/app/app
+      - ./service/product-service/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./service/product-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  organization-service:
+    build: ./service/organization-service
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./service/organization-service/app:/app/app
+      - ./service/organization-service/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./service/organization-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
   gateway:
     build: ./gateway
-    container_name: ausikor-gateway
     ports:
       - "8080:8080"
     volumes:
@@ -13,209 +96,34 @@ services:
       - ./gateway/.env
     environment:
       - PYTHONUNBUFFERED=1
-      - GATEWAY_HOST=0.0.0.0
-      - GATEWAY_PORT=8080
-      - ENVIRONMENT=development
-      - LOG_LEVEL=DEBUG
     restart: always
     depends_on:
-      - assessment-service
-      - chatbot-service
-      - monitoring-service
-      - report-service
-      - request-service
-      - response-service
+      - account-service
+      - post-service
+      - contract-service
+      - finance-service
+      - product-service
+      - organization-service
       - redis # ✅ 추가
     dns:
       - 8.8.8.8
       - 8.8.4.4
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-  # Assessment Service
-  assessment-service:
-    build:
-      context: ./service/assessment-service
-      dockerfile: Dockerfile
-    container_name: ausikor-assessment-service
-    ports:
-      - "8001:8001"
-    environment:
-      - SERVICE_NAME=assessment-service
-      - SERVICE_PORT=8001
-      - ENVIRONMENT=development
-    volumes:
-      - ./service/assessment-service:/app
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Chatbot Service
-  chatbot-service:
-    build:
-      context: ./service/chatbot-service
-      dockerfile: Dockerfile
-    container_name: ausikor-chatbot-service
-    ports:
-      - "8002:8002"
-    environment:
-      - SERVICE_NAME=chatbot-service
-      - SERVICE_PORT=8002
-      - ENVIRONMENT=development
-    volumes:
-      - ./service/chatbot-service:/app
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Monitoring Service
-  monitoring-service:
-    build:
-      context: ./service/monitoring-service
-      dockerfile: Dockerfile
-    container_name: ausikor-monitoring-service
-    ports:
-      - "8003:8003"
-    environment:
-      - SERVICE_NAME=monitoring-service
-      - SERVICE_PORT=8003
-      - ENVIRONMENT=development
-    volumes:
-      - ./service/monitoring-service:/app
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Report Service
-  report-service:
-    build:
-      context: ./service/report-service
-      dockerfile: Dockerfile
-    container_name: ausikor-report-service
-    ports:
-      - "8004:8004"
-    environment:
-      - SERVICE_NAME=report-service
-      - SERVICE_PORT=8004
-      - ENVIRONMENT=development
-    volumes:
-      - ./service/report-service:/app
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Request Service
-  request-service:
-    build:
-      context: ./service/request-service
-      dockerfile: Dockerfile
-    container_name: ausikor-request-service
-    ports:
-      - "8005:8005"
-    environment:
-      - SERVICE_NAME=request-service
-      - SERVICE_PORT=8005
-      - ENVIRONMENT=development
-    volumes:
-      - ./service/request-service:/app
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Response Service
-  response-service:
-    build:
-      context: ./service/response-service
-      dockerfile: Dockerfile
-    container_name: ausikor-response-service
-    ports:
-      - "8006:8006"
-    environment:
-      - SERVICE_NAME=response-service
-      - SERVICE_PORT=8006
-      - ENVIRONMENT=development
-    volumes:
-      - ./service/response-service:/app
-    networks:
-      - app-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: ausikor-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
-      - NODE_ENV=development
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    networks:
-      - app-network
-    restart: always
-    depends_on:
-      - gateway
-
-  # Redis (서비스 디스커버리 캐싱용)
   redis:
     image: redis:7-alpine # ✅ Redis 컨테이너 추가
-    container_name: ausikor-redis
+    container_name: redis
     ports:
       - "6379:6379"
     networks:
       - app-network
     restart: always
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # N8N (워크플로우 자동화)
   n8n:
     build:
       context: ./n8n
-    container_name: ausikor-n8n
+    container_name: n8n-container
     ports:
       - "5678:5678"
     env_file:
@@ -224,23 +132,6 @@ services:
       - ./n8n_data:/home/node/.n8n
     networks:
       - app-network
-    restart: always
-
-  # Nginx (로드 밸런서)
-  nginx:
-    image: nginx:alpine
-    container_name: ausikor-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./gateway/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    networks:
-      - app-network
-    depends_on:
-      - gateway
-      - frontend
-    restart: always
 
 networks:
   app-network:

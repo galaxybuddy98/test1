@@ -1,0 +1,4 @@
+Python project with virtual environment
+- Use venv/Scripts/python.exe as interpreter
+- FastAPI application in app/ directory
+- All imports should be resolved from venv packages

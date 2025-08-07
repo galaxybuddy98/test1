@@ -1,223 +1,765 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useStore } from '../store/useStore';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
-  const { 
-    health, 
-    services, 
-    users, 
-    orders, 
-    products,
-    isHealthLoading,
-    isServicesLoading,
-    isLoading,
-    error,
-    fetchHealth,
-    fetchServices,
-    fetchUsers,
-    fetchOrders,
-    fetchProducts
-  } = useStore();
-
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [message, setMessage] = useState('준비되면 얘기해 주세요.');
-  const [inputValue, setInputValue] = useState('');
+export default function HomePage() {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // 초기 데이터 로드
-    fetchHealth();
-    fetchServices();
-    fetchUsers();
-    fetchOrders();
-    fetchProducts();
-  }, [fetchHealth, fetchServices, fetchUsers, fetchOrders, fetchProducts]);
-
-  const handleVoiceCommand = async () => {
-    if (!('webkitSpeechRecognition' in window)) {
-      setMessage('음성 인식이 지원되지 않는 브라우저입니다.');
-      return;
+    // 로그인 상태 확인
+    const loggedIn = localStorage.getItem('loggedIn');
+    if (loggedIn === 'true') {
+      setIsLoggedIn(true);
     }
+  }, []);
 
-    setIsListening(true);
-    setMessage('듣고 있습니다...');
-
-    const recognition = new (window as any).webkitSpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'ko-KR';
-
-    recognition.onstart = () => {
-      setIsListening(true);
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setTranscript(transcript);
-      setInputValue(transcript);
-      processVoiceCommand(transcript);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('음성 인식 오류:', event.error);
-      setMessage('음성 인식에 실패했습니다. 다시 시도해주세요.');
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      setMessage('준비되면 얘기해 주세요.');
-    };
-
-    recognition.start();
-  };
-
-  const processVoiceCommand = (command: string) => {
-    const lowerCommand = command.toLowerCase();
-    
-    if (lowerCommand.includes('상태') || lowerCommand.includes('헬스')) {
-      setMessage('시스템 상태를 확인합니다...');
-      fetchHealth();
-    } else if (lowerCommand.includes('서비스') || lowerCommand.includes('서비스 목록')) {
-      setMessage('등록된 서비스 목록을 확인합니다...');
-      fetchServices();
-    } else if (lowerCommand.includes('사용자') || lowerCommand.includes('유저')) {
-      setMessage('사용자 목록을 확인합니다...');
-      fetchUsers();
-    } else if (lowerCommand.includes('주문') || lowerCommand.includes('오더')) {
-      setMessage('주문 목록을 확인합니다...');
-      fetchOrders();
-    } else if (lowerCommand.includes('상품') || lowerCommand.includes('제품')) {
-      setMessage('상품 목록을 확인합니다...');
-      fetchProducts();
-    } else if (lowerCommand.includes('전체') || lowerCommand.includes('모든')) {
-      setMessage('모든 데이터를 새로고침합니다...');
-      fetchHealth();
-      fetchServices();
-      fetchUsers();
-      fetchOrders();
-      fetchProducts();
+  const handleGetStarted = () => {
+    if (isLoggedIn) {
+      router.push('/about');
     } else {
-      setMessage(`"${command}" 명령을 인식했습니다.`);
+      router.push('/login');
     }
   };
 
-  const handleInputSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim()) {
-      processVoiceCommand(inputValue);
-      setInputValue('');
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'healthy':
-      case 'active':
-        return 'text-green-600';
-      case 'unhealthy':
-      case 'inactive':
-        return 'text-red-600';
-      default:
-        return 'text-yellow-600';
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('loggedIn');
+    localStorage.removeItem('rememberUser');
+    setIsLoggedIn(false);
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
-      {/* Main Content */}
-      <div className="w-full max-w-2xl">
-        {/* Central Prompt */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-medium text-gray-800 mb-4">
-            {message}
-          </h1>
-        </div>
-
-        {/* Input Field */}
-        <form onSubmit={handleInputSubmit} className="w-full">
-          <div className="relative w-full">
-            <div className="flex items-center bg-gray-100 rounded-full px-6 py-4 shadow-sm">
-              {/* Left side - Tools */}
-              <div className="flex items-center mr-4">
-                <button
-                  type="button"
-                  className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+    <div className="home-container">
+      <div className="home-background">
+        {/* Navigation Header */}
+        <nav className="navigation">
+          <div className="nav-left">
+            <div className="logo">
+              <div className="logo-icon">🏢</div>
+              <span className="logo-text">ERIpotter</span>
+            </div>
+          </div>
+          <div className="nav-right">
+            {isLoggedIn ? (
+              <>
+                <button 
+                  onClick={() => router.push('/about')}
+                  className="nav-link"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-sm font-medium">도구</span>
+                  대시보드
                 </button>
+                <button 
+                  onClick={handleLogout}
+                  className="nav-button secondary"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  onClick={() => router.push('/login')}
+                  className="nav-link"
+                >
+                  로그인
+                </button>
+                <button 
+                  onClick={() => router.push('/register')}
+                  className="nav-button primary"
+                >
+                  회사등록
+                </button>
+              </>
+            )}
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <div className="hero-section">
+          <div className="hero-content">
+            <div className="hero-badge">
+              <span>🚀 새로운 원청사 관리 시스템</span>
+            </div>
+            <h1 className="hero-title">
+              효율적인 원청사 관리의
+              <br />
+              <span className="gradient-text">새로운 기준</span>
+            </h1>
+            <p className="hero-description">
+              ERIpotter는 원청사와 협력업체 간의 효율적인 소통과 관리를 위한 
+              통합 플랫폼입니다. 실시간 모니터링부터 리포트 관리까지, 
+              모든 것을 한 곳에서 관리하세요.
+            </p>
+            <div className="hero-actions">
+              <button 
+                onClick={handleGetStarted}
+                className="cta-button primary"
+              >
+                {isLoggedIn ? '대시보드로 이동' : '시작하기'}
+              </button>
+              <button 
+                onClick={() => router.push('/register')}
+                className="cta-button secondary"
+              >
+                회사 등록하기
+              </button>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <div className="visual-card">
+              <div className="card-header">
+                <div className="card-dots">
+                  <span className="dot red"></span>
+                  <span className="dot yellow"></span>
+                  <span className="dot green"></span>
+                </div>
+                <span className="card-title">ERIpotter Dashboard</span>
               </div>
-
-              {/* Center - Input */}
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="무엇이든 물어보세요"
-                className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-500 text-lg"
-              />
-
-              {/* Right side - Voice and Wave icons */}
-              <div className="flex items-center ml-4 space-x-3">
-                <button
-                  type="button"
-                  onClick={handleVoiceCommand}
-                  disabled={isListening}
-                  className={`p-2 rounded-full transition-all duration-200 ${
-                    isListening 
-                      ? 'bg-red-500 text-white animate-pulse' 
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                
-                {/* Wave/Sound icon */}
-                <div className="flex items-center space-x-1">
-                  <div className={`w-1 h-3 bg-gray-400 rounded-full ${isListening ? 'animate-pulse' : ''}`}></div>
-                  <div className={`w-1 h-5 bg-gray-400 rounded-full ${isListening ? 'animate-pulse' : ''}`}></div>
-                  <div className={`w-1 h-3 bg-gray-400 rounded-full ${isListening ? 'animate-pulse' : ''}`}></div>
+              <div className="card-content">
+                <div className="stat-row">
+                  <div className="stat-item">
+                    <div className="stat-icon">📊</div>
+                    <div className="stat-info">
+                      <div className="stat-number">247</div>
+                      <div className="stat-label">활성 사용자</div>
+                    </div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-icon">🏢</div>
+                    <div className="stat-info">
+                      <div className="stat-number">89</div>
+                      <div className="stat-label">등록된 회사</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="chart-placeholder">
+                  <div className="chart-bar" style={{height: '60%'}}></div>
+                  <div className="chart-bar" style={{height: '80%'}}></div>
+                  <div className="chart-bar" style={{height: '45%'}}></div>
+                  <div className="chart-bar" style={{height: '90%'}}></div>
+                  <div className="chart-bar" style={{height: '70%'}}></div>
                 </div>
               </div>
             </div>
           </div>
-        </form>
+        </div>
 
-        {/* Transcript Display */}
-        {transcript && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              인식된 명령: "{transcript}"
-            </p>
-          </div>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 text-center">{error}</p>
-          </div>
-        )}
-
-        {/* Quick Status (Optional - Minimal) */}
-        {health && (
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-green-50 rounded-full">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-green-700">
-                시스템 정상 ({health.active_services}/{health.total_services} 서비스)
-              </span>
+        {/* Features Section */}
+        <div className="features-section">
+          <div className="features-container">
+            <div className="section-header">
+              <h2 className="section-title">주요 기능</h2>
+              <p className="section-description">
+                원청사 관리에 필요한 모든 기능을 제공합니다
+              </p>
+            </div>
+            <div className="features-grid">
+              <div className="feature-card">
+                <div className="feature-icon">📊</div>
+                <h3>실시간 대시보드</h3>
+                <p>모든 데이터를 한눈에 파악할 수 있는 직관적인 대시보드</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">👥</div>
+                <h3>사용자 관리</h3>
+                <p>협력업체 및 내부 직원의 체계적인 권한 관리</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">📈</div>
+                <h3>상세 리포트</h3>
+                <p>데이터 기반의 정확한 분석과 보고서 생성</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">🔒</div>
+                <h3>보안 관리</h3>
+                <p>기업급 보안 시스템으로 안전한 데이터 보호</p>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* CTA Section */}
+        <div className="cta-section">
+          <div className="cta-container">
+            <h2 className="cta-title">지금 바로 시작하세요</h2>
+            <p className="cta-description">
+              ERIpotter와 함께 더 효율적인 원청사 관리를 경험해보세요
+            </p>
+            <div className="cta-buttons">
+              <button 
+                onClick={handleGetStarted}
+                className="cta-button primary large"
+              >
+                무료로 시작하기
+              </button>
+              <button 
+                onClick={() => router.push('/register')}
+                className="cta-button secondary large"
+              >
+                회사 등록하기
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="footer">
+          <div className="footer-content">
+            <div className="footer-left">
+              <div className="footer-logo">
+                <div className="logo-icon">🏢</div>
+                <span className="logo-text">ERIpotter</span>
+              </div>
+              <p className="footer-description">
+                효율적인 원청사 관리의 새로운 기준
+              </p>
+            </div>
+            <div className="footer-right">
+              <div className="footer-links">
+                <a href="#" className="footer-link">개인정보처리방침</a>
+                <a href="#" className="footer-link">이용약관</a>
+                <a href="#" className="footer-link">고객지원</a>
+              </div>
+              <p className="footer-copyright">
+                © 2025 ERIpotter. 모든 권리 보유.
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
+
+      <style jsx>{`
+        .home-container {
+          min-height: 100vh;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .home-background {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          position: relative;
+        }
+
+        .home-background::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></svg>');
+          opacity: 0.3;
+        }
+
+        /* Navigation */
+        .navigation {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 40px;
+          position: relative;
+          z-index: 10;
+        }
+
+        .nav-left, .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .logo-icon {
+          font-size: 24px;
+          background: white;
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .logo-text {
+          font-size: 24px;
+          font-weight: 700;
+          color: white;
+        }
+
+        .nav-link {
+          color: white;
+          text-decoration: none;
+          font-weight: 500;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px 16px;
+          border-radius: 6px;
+          transition: background-color 0.2s ease;
+        }
+
+        .nav-link:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-button {
+          padding: 10px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: none;
+        }
+
+        .nav-button.primary {
+          background: white;
+          color: #667eea;
+        }
+
+        .nav-button.primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-button.secondary {
+          background: transparent;
+          color: white;
+          border: 2px solid white;
+        }
+
+        .nav-button.secondary:hover {
+          background: white;
+          color: #667eea;
+        }
+
+        /* Hero Section */
+        .hero-section {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 80px 40px;
+          position: relative;
+          z-index: 5;
+          max-width: 1200px;
+          margin: 0 auto;
+          gap: 60px;
+        }
+
+        .hero-content {
+          flex: 1;
+          max-width: 600px;
+        }
+
+        .hero-badge {
+          display: inline-block;
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: 500;
+          margin-bottom: 24px;
+          backdrop-filter: blur(10px);
+        }
+
+        .hero-title {
+          font-size: 48px;
+          font-weight: 700;
+          color: white;
+          margin: 0 0 24px 0;
+          line-height: 1.2;
+        }
+
+        .gradient-text {
+          background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .hero-description {
+          font-size: 18px;
+          color: rgba(255, 255, 255, 0.9);
+          line-height: 1.6;
+          margin: 0 0 32px 0;
+        }
+
+        .hero-actions {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+
+        .cta-button {
+          padding: 16px 32px;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: none;
+        }
+
+        .cta-button.primary {
+          background: white;
+          color: #667eea;
+          box-shadow: 0 4px 14px rgba(255, 255, 255, 0.3);
+        }
+
+        .cta-button.primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+        }
+
+        .cta-button.secondary {
+          background: transparent;
+          color: white;
+          border: 2px solid white;
+        }
+
+        .cta-button.secondary:hover {
+          background: white;
+          color: #667eea;
+        }
+
+        .cta-button.large {
+          padding: 20px 40px;
+          font-size: 18px;
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+        }
+
+        .visual-card {
+          background: white;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+          width: 100%;
+          max-width: 400px;
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .card-dots {
+          display: flex;
+          gap: 6px;
+        }
+
+        .dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+        }
+
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27ca3f; }
+
+        .card-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #4a5568;
+        }
+
+        .stat-row {
+          display: flex;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .stat-item {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px;
+          background: #f7fafc;
+          border-radius: 8px;
+        }
+
+        .stat-icon {
+          font-size: 24px;
+        }
+
+        .stat-number {
+          font-size: 20px;
+          font-weight: 700;
+          color: #2d3748;
+        }
+
+        .stat-label {
+          font-size: 12px;
+          color: #718096;
+        }
+
+        .chart-placeholder {
+          display: flex;
+          align-items: end;
+          gap: 8px;
+          height: 80px;
+          padding: 16px;
+          background: #f7fafc;
+          border-radius: 8px;
+        }
+
+        .chart-bar {
+          flex: 1;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 2px;
+          min-height: 20px;
+        }
+
+        /* Features Section */
+        .features-section {
+          background: white;
+          padding: 80px 40px;
+          position: relative;
+          z-index: 5;
+        }
+
+        .features-container {
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .section-header {
+          text-align: center;
+          margin-bottom: 60px;
+        }
+
+        .section-title {
+          font-size: 36px;
+          font-weight: 700;
+          color: #2d3748;
+          margin: 0 0 16px 0;
+        }
+
+        .section-description {
+          font-size: 18px;
+          color: #718096;
+          margin: 0;
+        }
+
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 32px;
+        }
+
+        .feature-card {
+          text-align: center;
+          padding: 32px 24px;
+          background: #f7fafc;
+          border-radius: 16px;
+          transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+        }
+
+        .feature-icon {
+          font-size: 48px;
+          margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+          font-size: 20px;
+          font-weight: 600;
+          color: #2d3748;
+          margin: 0 0 12px 0;
+        }
+
+        .feature-card p {
+          font-size: 16px;
+          color: #718096;
+          margin: 0;
+          line-height: 1.5;
+        }
+
+        /* CTA Section */
+        .cta-section {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 80px 40px;
+          position: relative;
+          z-index: 5;
+        }
+
+        .cta-container {
+          max-width: 800px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .cta-title {
+          font-size: 36px;
+          font-weight: 700;
+          color: white;
+          margin: 0 0 16px 0;
+        }
+
+        .cta-description {
+          font-size: 18px;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0 0 32px 0;
+        }
+
+        .cta-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        /* Footer */
+        .footer {
+          background: #2d3748;
+          padding: 40px;
+          position: relative;
+          z-index: 5;
+        }
+
+        .footer-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .footer-left {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .footer-logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .footer-logo .logo-icon {
+          background: #667eea;
+          color: white;
+        }
+
+        .footer-logo .logo-text {
+          color: white;
+        }
+
+        .footer-description {
+          color: #a0aec0;
+          margin: 0;
+          font-size: 14px;
+        }
+
+        .footer-right {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+        }
+
+        .footer-links {
+          display: flex;
+          gap: 24px;
+        }
+
+        .footer-link {
+          color: #a0aec0;
+          text-decoration: none;
+          font-size: 14px;
+          transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+          color: white;
+        }
+
+        .footer-copyright {
+          color: #718096;
+          margin: 0;
+          font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .navigation {
+            padding: 16px 20px;
+          }
+
+          .nav-right {
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .hero-section {
+            flex-direction: column;
+            padding: 60px 20px;
+            text-align: center;
+            gap: 40px;
+          }
+
+          .hero-title {
+            font-size: 36px;
+          }
+
+          .features-section {
+            padding: 60px 20px;
+          }
+
+          .features-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .cta-section {
+            padding: 60px 20px;
+          }
+
+          .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .footer {
+            padding: 32px 20px;
+          }
+
+          .footer-content {
+            flex-direction: column;
+            gap: 24px;
+            text-align: center;
+          }
+
+          .footer-right {
+            align-items: center;
+          }
+
+          .footer-links {
+            flex-direction: column;
+            gap: 12px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

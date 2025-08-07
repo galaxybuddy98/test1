@@ -7,10 +7,9 @@ import logging
 import sys
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from fastapi import Request
 
 from app.router.auth_router import auth_router
-from http://app.www.google.jwt_auth_middleware import AuthMiddleware
+from app.common.middleware.jwt_auth_middleware import AuthMiddleware
 from app.domain.discovery.model.service_discovery import ServiceDiscovery
 from app.domain.discovery.model.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
@@ -20,7 +19,7 @@ if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
 
 logging.basicConfig(
-    level=http://logging.INFO,
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)]
 )
@@ -28,11 +27,11 @@ logger = logging.getLogger("gateway_api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    http://logger.info("🚀 Gateway API 서비스 시작")
+    logger.info("🚀 Gateway API 서비스 시작")
     # Settings 초기화 및 앱 state에 등록
     app.state.settings = Settings()
     yield
-    http://logger.info("🛑 Gateway API 서비스 종료")
+    logger.info("🛑 Gateway API 서비스 종료")
 
 app = FastAPI(
     title="Gateway API",
@@ -94,6 +93,32 @@ async def proxy_get(
             status_code=500
         )
 
+
+@gateway_router.post("/login", summary="로그인")
+async def login():
+
+    print("로그인 요청 받음", {})
+    return {"message": "로그인 요청 받음"}
+
+@gateway_router.post("/signup", summary="회원가입")
+async def signup(request: Request):
+    try:
+        # 요청 body에서 JSON 데이터 읽기
+        body = await request.body()
+        if body:
+            import json
+            data = json.loads(body)
+            print("🎉 회원가입 요청 받음:")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        else:
+            print("📭 빈 요청 받음")
+            data = {}
+        
+        return {"message": "회원가입성공", "received_data": data}
+    except Exception as e:
+        print(f"❌ 회원가입 요청 처리 중 오류: {str(e)}")
+        return {"message": "회원가입 실패", "error": str(e)}
+
 # 파일 업로드 및 일반 JSON 요청 모두 처리, JWT 적용
 @gateway_router.post("/{service}/{path:path}", summary="POST 프록시")
 async def proxy_post(
@@ -105,9 +130,9 @@ async def proxy_post(
 ):
     try:
         # 로깅
-        http://logger.info(f"🌈 POST 요청 받음: 서비스={service}, 경로={path}")
+        logger.info(f"🌈 POST 요청 받음: 서비스={service}, 경로={path}")
         if file:
-            http://logger.info(f"파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
+            logger.info(f"파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
 
         # 서비스 팩토리 생성
         factory = ServiceDiscovery(service_type=service)
@@ -131,11 +156,11 @@ async def proxy_post(
             
             # 파일이 제공된 경우 처리
             if file:
-                file_content = await http://file.read()
+                file_content = await file.read()
                 files = {'file': (file.filename, file_content, file.content_type)}
                 
                 # 파일 위치 되돌리기 (다른 코드에서 다시 읽을 수 있도록)
-                await http://file.seek(0)
+                await file.seek(0)
             
             # 시트 이름이 제공된 경우 처리
             if sheet_names:
@@ -146,7 +171,7 @@ async def proxy_post(
                 body = await request.body()
                 if not body:
                     # body가 비어있는 경우도 허용
-                    http://logger.info("요청 본문이 비어 있습니다.")
+                    logger.info("요청 본문이 비어 있습니다.")
             except Exception as e:
                 logger.warning(f"요청 본문 읽기 실패: {str(e)}")
                 
@@ -251,8 +276,7 @@ async def proxy_patch(service: ServiceType, path: str, request: Request):
 # app.include_router(gateway_router) # 중복된 라우터 등록 제거
 
 # 404 에러 핸들러
-@app
-.exception_handler(404)
+@app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     return JSONResponse(
         status_code=404,
@@ -260,13 +284,17 @@ async def not_found_handler(request: Request, exc):
     )
 
 # 기본 루트 경로
-@app
-.get("/")
+@app.get("/")
 async def root():
     return {"message": "Gateway API", "version": "0.1.0"}
+
+# 간단한 health check (prefix 없이) - POST
+@app.post("/health")
+async def simple_health_check_post():
+    return {"status": "healthy!", "service": "Gateway API", "method": "POST"}
 
 # ✅ 서버 실행
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("SERVICE_PORT", 8080))
-    http://uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)

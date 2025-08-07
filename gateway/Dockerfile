@@ -42,14 +42,14 @@ ENV PATH=/root/.local/bin:$PATH
 COPY app/ ./app/
 
 # 포트 노출
-EXPOSE 8000
+EXPOSE 8080
 
 # 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8080/health || exit 1
 
 # 비root 사용자로 전환
 USER appuser
 
 # 애플리케이션 실행
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

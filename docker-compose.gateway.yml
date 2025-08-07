@@ -1,0 +1,17 @@
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    user: root
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
