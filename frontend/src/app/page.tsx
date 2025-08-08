@@ -13,11 +13,11 @@ export default function HomePage() {
     const loggedIn = localStorage.getItem('loggedIn');
     if (loggedIn === 'true') {
       setIsLoggedIn(true);
-      // 이미 로그인된 경우 대시보드로 이동
-      router.push('/about');
+      // 이미 로그인된 경우 메인 페이지 유지 (about으로 자동 이동 안함)
+      // router.push('/about');
     } else {
-      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-      router.push('/login');
+      // 로그인되지 않은 경우도 메인 페이지 유지
+      // router.push('/login');
     }
     setIsLoading(false);
   }, [router]);
