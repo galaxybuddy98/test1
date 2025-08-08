@@ -33,6 +33,6 @@
     # RUN groupadd -r appuser && useradd -r -g appuser appuser
     # USER appuser
     
-    # ★ Railway PORT 환경변수 처리 - 완전한 shell form
-    CMD sh -c 'python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}'
+    # ★ 고정 포트로 실행 (Railway가 알아서 매핑)
+    CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
     
