@@ -1,10 +1,11 @@
 import os, logging, sys
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from app.router.auth_router import auth_router
-from app.domain.sme.controller.assessment_controller import assessment_router
+
+
 
 if os.getenv("PORT") is None:  # 로컬 개발 때만 .env 로드
     load_dotenv()
@@ -44,8 +45,8 @@ app.add_middleware(
 )
 
 # Prefix 통일
-app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(assessment_router, prefix="/api/v1/assessments", tags=["assessments"])
+# app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
+# app.include_router(assessment_router, prefix="/api/v1/assessments", tags=["assessments"])
 
 @app.get("/", include_in_schema=False)
 async def root():
