@@ -1,52 +1,27 @@
-# Python 3.11 slim 이미지 사용
-FROM python:3.11-slim as builder
-
-# 작업 디렉토리 설정
-WORKDIR /app
-
-# 시스템 종속성 설치 (빌드용)
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# requirements.txt 복사 및 의존성 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-# 프로덕션 스테이지
 FROM python:3.11-slim
 
-# 비root 사용자 생성
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# 1) 빌드 도구 + libpq (psycopg2용) + curl(헬스체크용)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev pkg-config curl \
+ && rm -rf /var/lib/apt/lists/*
 
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# 런타임 종속성 설치
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# 2) 의존성 설치 (requirements.txt가 이 디렉토리에 있다고 가정)
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
 
-# 빌더 스테이지에서 설치된 패키지 복사
-COPY --from=builder /root/.local /root/.local
+# 3) 앱 소스
+COPY app/ /app/app
 
-# 소스 코드 복사
-COPY app/ ./app/
+# 4) 로컬에서도 바로 뜨게 기본 포트 지정(로컬 전용), Railway에선 ${PORT} 사용
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
 
-# PATH에 로컬 패키지 경로 추가
-ENV PATH=/root/.local/bin:$PATH
+# 5) (선택) 헬스체크: /health 엔드포인트 구현해두었을 때
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:${PORT}/health || exit 1
 
-# 포트 노출 (Railway가 동적으로 할당)
-EXPOSE $PORT
-
-# 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:$PORT/health || exit 1
-
-# 사용자 변경
-USER appuser
-
-# 애플리케이션 실행
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "$PORT"]
+# 6) 실행
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
