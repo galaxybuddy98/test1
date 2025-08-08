@@ -3,6 +3,25 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+// 맨 위쪽 import 아래에 타입 선언
+type Company = {
+  company_id: string;
+  company_name: string | null;
+  industry: string;
+  company_category: string;
+  admin_username: string;
+  registeredAt: string;
+};
+
+type User = {
+  username: string;
+  password: string;
+  email: string;
+  company_id: string;
+  role: 'admin' | 'user';
+  registeredAt: string;
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   
@@ -169,9 +188,10 @@ export default function RegisterPage() {
 
       // 로컬 저장소에도 저장 (기존 로직 유지)
       const existingCompanies = localStorage.getItem('companies');
-      const companies = existingCompanies ? JSON.parse(existingCompanies) : [];
+      const companies: Company[] = existingCompanies ? (JSON.parse(existingCompanies) as Company[]) : [];
       
-      if (companies.find((company: any) => company.company_id === registerData.company_id)) {
+      // 🔧 any 제거
+      if (companies.find((company: Company) => company.company_id === registerData.company_id)) {
         setErrors({ 
           company_id: '', 
           company_name: '', 
@@ -190,7 +210,7 @@ export default function RegisterPage() {
       // 기존 사용자 확인
       const existingUser = localStorage.getItem('user');
       if (existingUser) {
-        const { username } = JSON.parse(existingUser);
+        const { username } = JSON.parse(existingUser) as User;
         if (username === registerData.admin_username) {
           setErrors({ 
             company_id: '', 
@@ -237,8 +257,9 @@ export default function RegisterPage() {
       alert('🎉 회사 등록이 완료되었습니다!\n관리자 계정이 생성되었습니다.\n백엔드에 데이터가 전송되었습니다.\n로그인 페이지로 이동합니다.');
       router.push('/login');
       
-    } catch (error: any) {
+    } catch (error: unknown) {  // 🔧 any → unknown
       console.error('회사 등록 오류:', error);
+      const message = error instanceof Error ? error.message : '회사 등록 중 오류가 발생했습니다. 백엔드 연결을 확인해주세요.';
       setErrors({
         company_id: '',
         company_name: '',
@@ -248,7 +269,7 @@ export default function RegisterPage() {
         admin_password: '',
         confirm_password: '',
         admin_email: '',
-        general: error.message || '회사 등록 중 오류가 발생했습니다. 백엔드 연결을 확인해주세요.'
+        general: message
       });
     } finally {
       setIsLoading(false);
