@@ -130,9 +130,10 @@ async def not_found_handler(request: Request, exc):
 async def root():
     return {
         "message": "Gateway API", 
-        "version": "0.1.0",
+        "version": "0.1.1",
         "port": os.getenv("PORT", "8080"),
-        "status": "running"
+        "status": "running",
+        "timestamp": "2024-01-01"
     }
 
 @app.get("/test")
