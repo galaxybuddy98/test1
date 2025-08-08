@@ -81,16 +81,25 @@ export default function AboutPage() {
               홈으로 이동
             </button>
             <button 
-              onClick={() => router.push('/login')}
+              onClick={() => {
+                // 로그아웃 처리
+                localStorage.removeItem('loggedIn');
+                localStorage.removeItem('rememberUser');
+                alert('로그아웃되었습니다.');
+                router.push('/login');
+              }}
               className="nav-button secondary"
             >
-              로그인 페이지로
+              로그아웃
             </button>
             <button 
-              onClick={() => alert('대시보드로 이동 예정')}
+              onClick={() => {
+                // 임시로 현재 페이지 새로고침 (실제 대시보드 페이지 없으므로)
+                window.location.reload();
+              }}
               className="nav-button secondary"
             >
-              대시보드 바로가기
+              페이지 새로고침
             </button>
           </div>
 
