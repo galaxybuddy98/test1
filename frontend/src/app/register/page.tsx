@@ -169,9 +169,8 @@ export default function RegisterPage() {
         timestamp: new Date().toISOString()
       };
 
-      // 백엔드로 POST 요청 전송
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${apiUrl}/api/v1/signup`, {
+      // 실제 백엔드 API 호출
+      const response = await fetch('/api/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

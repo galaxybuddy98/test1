@@ -33,6 +33,6 @@
     RUN groupadd -r appuser && useradd -r -g appuser appuser
     USER appuser
     
-    # ★ 중요: python -m uvicorn + 동적 포트
-    CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --log-level debug"]
+    # ★ Railway PORT 환경변수 처리
+    CMD sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port \${PORT:-8080}"
     

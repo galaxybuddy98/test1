@@ -33,7 +33,7 @@ export const useStore = create<AppState>((set) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      // 실제 Gateway API 호출 (lme.eripotter.com/api/login)
+      // 실제 Gateway API 호출 (api.eripotter.com)
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
