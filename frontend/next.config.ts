@@ -45,6 +45,9 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GATEWAY_URL: process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com',
   },
+  // 환경변수 업데이트 확인용
 };
+
+// Vercel 배포 테스트
 
 export default nextConfig;
