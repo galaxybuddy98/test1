@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
       // 사용자 관련
       {
         source: '/api/login',
-        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/login`,
+        destination: `https://api.eripotter.com/login`,
       },
       {
         source: '/api/signup', 
-        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/signup`,
+        destination: `https://api.eripotter.com/signup`,
       },
       // 기본 API
       {
@@ -48,6 +48,6 @@ const nextConfig: NextConfig = {
   // 환경변수 업데이트 확인용
 };
 
-// Vercel 배포 테스트
+// Vercel 배포 테스트 v2
 
 export default nextConfig;
