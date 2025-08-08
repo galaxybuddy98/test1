@@ -1,260 +1,76 @@
 import { create } from 'zustand';
-import { apiService, User, Order, Product, ServiceInfo, HealthResponse } from '../services/api';
 
 interface AppState {
   // Loading states
   isLoading: boolean;
-  isHealthLoading: boolean;
-  isServicesLoading: boolean;
-  
-  // Data states
-  health: HealthResponse | null;
-  services: ServiceInfo[];
-  users: User[];
-  orders: Order[];
-  products: Product[];
   
   // Error states
   error: string | null;
   
+  // User authentication
+  isLoggedIn: boolean;
+  user: { name: string; email: string } | null;
+  
   // Actions
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  
-  // Health check
-  fetchHealth: () => Promise<void>;
-  
-  // Service discovery
-  fetchServices: () => Promise<void>;
-  
-  // User management
-  fetchUsers: () => Promise<void>;
-  createUser: (userData: Omit<User, 'id' | 'created_at'>) => Promise<void>;
-  updateUser: (id: string, userData: Partial<User>) => Promise<void>;
-  deleteUser: (id: string) => Promise<void>;
-  
-  // Order management
-  fetchOrders: () => Promise<void>;
-  createOrder: (orderData: Omit<Order, 'id' | 'created_at'>) => Promise<void>;
-  updateOrder: (id: string, orderData: Partial<Order>) => Promise<void>;
-  deleteOrder: (id: string) => Promise<void>;
-  
-  // Product management
-  fetchProducts: () => Promise<void>;
-  createProduct: (productData: Omit<Product, 'id' | 'created_at'>) => Promise<void>;
-  updateProduct: (id: string, productData: Partial<Product>) => Promise<void>;
-  deleteProduct: (id: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>((set) => ({
   // Initial states
   isLoading: false,
-  isHealthLoading: false,
-  isServicesLoading: false,
-  health: null,
-  services: [],
-  users: [],
-  orders: [],
-  products: [],
   error: null,
+  isLoggedIn: false,
+  user: null,
   
   // Basic actions
   setLoading: (loading: boolean) => set({ isLoading: loading }),
   setError: (error: string | null) => set({ error }),
   
-  // Health check
-  fetchHealth: async () => {
-    set({ isHealthLoading: true, error: null });
-    try {
-      const health = await apiService.getHealth();
-      set({ health, isHealthLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Health check failed', 
-        isHealthLoading: false 
-      });
-    }
-  },
-  
-  // Service discovery
-  fetchServices: async () => {
-    set({ isServicesLoading: true, error: null });
-    try {
-      const services = await apiService.getServices();
-      set({ services, isServicesLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch services', 
-        isServicesLoading: false 
-      });
-    }
-  },
-  
-  // User management
-  fetchUsers: async () => {
+  // Authentication
+  login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      const users = await apiService.getUsers();
-      set({ users, isLoading: false });
+      // 실제 Gateway API 호출 (lme.eripotter.com/api/login)
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`로그인 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      set({ 
+        isLoggedIn: true, 
+        user: { name: '사용자', email },
+        isLoading: false 
+      });
+      
+      // JWT 토큰이 있다면 저장
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+      localStorage.setItem('loggedIn', 'true');
+      
     } catch (error) {
       set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch users', 
+        error: error instanceof Error ? error.message : '로그인에 실패했습니다', 
         isLoading: false 
       });
     }
   },
   
-  createUser: async (userData) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.createUser(userData);
-      await get().fetchUsers(); // Refresh users list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to create user', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  updateUser: async (id, userData) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.updateUser(id, userData);
-      await get().fetchUsers(); // Refresh users list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update user', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  deleteUser: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.deleteUser(id);
-      await get().fetchUsers(); // Refresh users list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete user', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  // Order management
-  fetchOrders: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const orders = await apiService.getOrders();
-      set({ orders, isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch orders', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  createOrder: async (orderData) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.createOrder(orderData);
-      await get().fetchOrders(); // Refresh orders list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to create order', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  updateOrder: async (id, orderData) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.updateOrder(id, orderData);
-      await get().fetchOrders(); // Refresh orders list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update order', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  deleteOrder: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.deleteOrder(id);
-      await get().fetchOrders(); // Refresh orders list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete order', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  // Product management
-  fetchProducts: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const products = await apiService.getProducts();
-      set({ products, isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch products', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  createProduct: async (productData) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.createProduct(productData);
-      await get().fetchProducts(); // Refresh products list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to create product', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  updateProduct: async (id, productData) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.updateProduct(id, productData);
-      await get().fetchProducts(); // Refresh products list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to update product', 
-        isLoading: false 
-      });
-    }
-  },
-  
-  deleteProduct: async (id) => {
-    set({ isLoading: true, error: null });
-    try {
-      await apiService.deleteProduct(id);
-      await get().fetchProducts(); // Refresh products list
-      set({ isLoading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to delete product', 
-        isLoading: false 
-      });
-    }
+  logout: () => {
+    set({ isLoggedIn: false, user: null });
+    localStorage.removeItem('loggedIn');
+    localStorage.removeItem('auth_token');
   },
 })); 

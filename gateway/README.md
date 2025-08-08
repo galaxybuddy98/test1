@@ -77,17 +77,17 @@ docker-compose logs -f
 # 게이트웨이 실행
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-# 사용자 서비스 실행
-cd services/user-service
-python -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+# 마이크로서비스 실행
+cd service/assessment-service
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 
-# 주문 서비스 실행
-cd services/order-service
-python -m uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+# 인증 서비스 실행
+cd service/auth-service
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
 
-# 상품 서비스 실행
-cd services/product-service
-python -m uvicorn main:app --host 0.0.0.0 --port 8003 --reload
+# 챗봇 서비스 실행
+cd service/chatbot-service
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
 ```
 
 ## 📋 API 엔드포인트
@@ -187,19 +187,23 @@ gateway/
 │           │   └── discovery_controller.py
 │           └── model/
 │               └── service_registry.py
-├── services/
-│   ├── user-service/
-│   │   ├── main.py
+├── service/
+│   ├── assessment-service/
+│   │   ├── app/main.py
 │   │   ├── Dockerfile
 │   │   └── requirements.txt
-│   ├── order-service/
-│   │   ├── main.py
+│   ├── auth-service/
+│   │   ├── app/main.py
 │   │   ├── Dockerfile
 │   │   └── requirements.txt
-│   └── product-service/
-│       ├── main.py
-│       ├── Dockerfile
-│       └── requirements.txt
+│   ├── chatbot-service/
+│   │   ├── app/main.py
+│   │   ├── Dockerfile
+│   │   └── requirements.txt
+│   ├── monitoring-service/
+│   ├── report-service/
+│   ├── request-service/
+│   └── response-service/
 ├── nginx/
 │   └── nginx.conf
 ├── docker-compose.yml

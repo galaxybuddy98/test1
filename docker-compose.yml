@@ -1,118 +1,127 @@
 services:
-  account-service:
-    build: ./service/account-service
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./service/account-service/app:/app/app
-      - ./service/account-service/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./service/account-service/.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    networks:
-      - app-network
-
-  post-service:
-    build: ./service/post-service
-    ports:
-      - "8002:8002"
-    volumes:
-      - ./service/post-service/app:/app/app
-      - ./service/post-service/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./service/post-service/.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    networks:
-      - app-network
-
-  contract-service:
-    build: ./service/contract-service
-    ports:
-      - "8004:8004"
-    volumes:
-      - ./service/contract-service/app:/app/app
-      - ./service/contract-service/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./service/contract-service/.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    networks:
-      - app-network
-
-  finance-service:
-    build: ./service/finance-service
-    ports:
-      - "8005:8005"
-    volumes:
-      - ./service/finance-service/app:/app/app
-      - ./service/finance-service/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./service/finance-service/.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    restart: always
-    networks:
-      - app-network
-
-  product-service:
-    build: ./service/product-service
-    ports:
-      - "8006:8006"
-    volumes:
-      - ./service/product-service/app:/app/app
-      - ./service/product-service/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./service/product-service/.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    restart: always
-    networks:
-      - app-network
-
-  organization-service:
-    build: ./service/organization-service
-    ports:
-      - "8007:8007"
-    volumes:
-      - ./service/organization-service/app:/app/app
-      - ./service/organization-service/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./service/organization-service/.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    restart: always
-    networks:
-      - app-network
-
+  # API Gateway
   gateway:
     build: ./gateway
     ports:
       - "8080:8080"
     volumes:
       - ./gateway:/app
-    env_file:
-      - ./gateway/.env
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
     depends_on:
-      - account-service
-      - post-service
-      - contract-service
-      - finance-service
-      - product-service
-      - organization-service
-      - redis # ✅ 추가
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
+      - assessment-service
+      - auth-service
+      - chatbot-service
+      - monitoring-service
+      - report-service
+      - request-service
+      - response-service
     networks:
       - app-network
 
+  # Microservices
+  assessment-service:
+    build: ./service/assessment-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./service/assessment-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  auth-service:
+    build: ./service/auth-service
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./service/auth-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  chatbot-service:
+    build: ./service/chatbot-service
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./service/chatbot-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  monitoring-service:
+    build: ./service/monitoring-service
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./service/monitoring-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  report-service:
+    build: ./service/report-service
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./service/report-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  request-service:
+    build: ./service/request-service
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./service/request-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  response-service:
+    build: ./service/response-service
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./service/response-service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - app-network
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: always
+    networks:
+      - app-network
+
+  # Database & Cache
   redis:
-    image: redis:7-alpine # ✅ Redis 컨테이너 추가
+    image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
@@ -120,25 +129,9 @@ services:
       - app-network
     restart: always
 
-  n8n:
-    build:
-      context: ./n8n
-    container_name: n8n-container
-    ports:
-      - "5678:5678"
-    env_file:
-      - ./n8n/.env
-    volumes:
-      - ./n8n_data:/home/node/.n8n
-    networks:
-      - app-network
-
 networks:
   app-network:
     driver: bridge
     ipam:
       config:
         - subnet: 172.25.0.0/16
-
-volumes:
-  n8n_data:

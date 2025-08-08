@@ -44,8 +44,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Gateway API",
-    description="Gateway API for http://api.eripotter.com",
+    title="ERIpotter Gateway API", 
+    description="Gateway API for lme.eripotter.com",
     version="0.1.0",
     docs_url="/docs",
     lifespan=lifespan
@@ -66,7 +66,7 @@ app.add_middleware(
 
 app.add_middleware(AuthMiddleware)
 
-gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
+gateway_router = APIRouter(tags=["Gateway API"])
 gateway_router.include_router(auth_router)
 app.include_router(gateway_router)
 

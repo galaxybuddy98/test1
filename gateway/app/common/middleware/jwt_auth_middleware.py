@@ -24,12 +24,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/openapi.json",
             "/redoc",
             "/health",               # 메인 앱 health
-            "/api/health",           # 프론트엔드 프록시용 health
-            "/api/v1/health",        # gateway_router health
-            "/api/v1/login",
-            "/api/v1/signup",
-            "/api/v1/auth/login",
-            "/api/v1/auth/register",
+            "/login",
+            "/signup",
+            "/user/login",
+            "/user/signup",
+            "/auth/login",
+            "/auth/register",
         }
 
         # 인증이 필요하지 않은 '접두사' 경로들(문서 정적 리소스 등)

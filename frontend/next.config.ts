@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/api/:path*',
+        source: '/(user|health|docs|assessment|auth|chatbot|monitoring|report|request|response)/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
@@ -15,8 +15,35 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      // 사용자 관련
+      {
+        source: '/api/login',
+        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/login`,
+      },
+      {
+        source: '/api/signup', 
+        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/signup`,
+      },
+      // 기본 API
+      {
+        source: '/health',
+        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/health`,
+      },
+      {
+        source: '/docs',
+        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/docs`,
+      },
+      // 마이크로서비스들
+      {
+        source: '/(assessment|auth|chatbot|monitoring|report|request|response)/:path*',
+        destination: `${process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com'}/:match*`,
+      },
+    ];
+  },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_GATEWAY_URL: process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://api.eripotter.com',
   },
 };
 
