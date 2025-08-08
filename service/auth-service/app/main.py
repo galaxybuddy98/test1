@@ -1,64 +1,83 @@
-import os, logging, sys
-import httpx
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from dotenv import load_dotenv
+from fastapi import APIRouter, Body, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional
 
+# 요청 모델 정의
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    email: str
+    company_id: Optional[str] = None
 
-if os.getenv("PORT") is None:  # 로컬 개발 때만 .env 로드
-    load_dotenv()
+auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
-logger = logging.getLogger("auth-service")
+@auth_router.post("/login", summary="로그인")
+async def login(request: LoginRequest):
+    """
+    사용자명과 비밀번호로 로그인합니다.
+    """
+    print(f"로그인 시도: {request.username}")
+    
+    # 임시 로그인 로직 (실제로는 데이터베이스 검증 필요)
+    if request.username == "admin" and request.password == "password":
+        return {
+            "success": True,
+            "message": "로그인 성공",
+            "user": {
+                "username": request.username,
+                "role": "admin"
+            },
+            "token": "mock_jwt_token_123"
+        }
+    else:
+        raise HTTPException(status_code=401, detail="사용자명 또는 비밀번호가 잘못되었습니다.")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("🚀 Assessment Service 시작")
-    logger.info(f"🔧 PORT={os.getenv('PORT')}  RAILWAY={os.getenv('RAILWAY')}")
-    yield
-    logger.info("🛑 Assessment Service 종료")
+@auth_router.post("/register", summary="회원가입")
+async def register(request: RegisterRequest):
+    """
+    새 사용자를 등록합니다.
+    """
+    print(f"회원가입 시도: {request.username}, 이메일: {request.email}")
+    
+    # 임시 회원가입 로직 (실제로는 데이터베이스에 저장 필요)
+    return {
+        "success": True,
+        "message": "회원가입 완료",
+        "user": {
+            "username": request.username,
+            "email": request.email,
+            "company_id": request.company_id
+        }
+    }
 
-app = FastAPI(
-    title="Assessment Service",
-    description="중소기업 진단 평가 서비스",
-    version="1.0.0",
-    docs_url="/docs",
-    lifespan=lifespan,
-)
+@auth_router.post("/logout", summary="로그아웃")
+async def logout():
+    """
+    사용자를 로그아웃합니다.
+    """
+    return {
+        "success": True,
+        "message": "로그아웃되었습니다."
+    }
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        os.getenv("FRONTEND_ORIGIN", "http://localhost:3000"),
-        os.getenv("GATEWAY_ORIGIN", "http://localhost:8080"),
-        "https://lme.eripotter.com",  # 프로덕션 도메인
-        "http://lme.eripotter.com",   # HTTP도 허용 (필요시)
-    ],
-    allow_origin_regex=r"https://.*\.railway\.app",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Prefix 통일
-# app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
-# app.include_router(assessment_router, prefix="/api/v1/assessments", tags=["assessments"])
-
-@app.get("/", include_in_schema=False)
-async def root():
-    return {"service": "Assessment Service", "version": "1.0.0", "status": "running"}
-
-@app.get("/health", include_in_schema=False)
-async def health_check():
-    return {"status": "healthy", "service": "Assessment Service", "version": "1.0.0"}
-
-# __main__ 블록은 로컬 실행용(배포에 영향 없음)
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=int(os.getenv("PORT", 8001)))
+@auth_router.get("/verify", summary="토큰 검증")
+async def verify_token(token: str):
+    """
+    JWT 토큰을 검증합니다.
+    """
+    # 임시 토큰 검증 로직
+    if token == "mock_jwt_token_123":
+        return {
+            "valid": True,
+            "user": {
+                "username": "admin",
+                "role": "admin"
+            }
+        }
+    else:
+        raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
