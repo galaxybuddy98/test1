@@ -34,5 +34,5 @@
     USER appuser
     
     # ★ 중요: python -m uvicorn + 동적 포트
-    CMD sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"
+    CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --log-level debug"]
     

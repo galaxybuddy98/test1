@@ -294,7 +294,11 @@ async def root():
     return {"message": "Gateway API", "version": "0.1.0"}
 
 @app.get("/health", include_in_schema=False)
-async def health():
+def health():
+    return {"status": "ok"}
+
+@app.get("/api/v1/health", include_in_schema=False)
+def health_v1():
     return {"status": "ok"}
 
 # 간단한 health check (prefix 없이) - POST
