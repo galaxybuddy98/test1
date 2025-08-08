@@ -147,10 +147,10 @@ async def simple_health_check_post():
     return {"status": "healthy!", "service": "Gateway API", "method": "POST"}
 
 
-# ===== 인증(예시) =====
+# ===== 인증(예시) - 프록시보다 먼저 정의해야 함 =====
 @gateway_router.post("/login", summary="로그인")
 async def login():
-    print("로그인 요청 받음", {})
+    print("🚀 /login 엔드포인트 호출됨!")
     return {"message": "로그인 요청 받음"}
 
 
