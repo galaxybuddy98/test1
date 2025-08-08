@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 import httpx  # ✅ 추가: 프록시 요청 릴레이용
 
 # from app.router.auth_router import auth_router  # 사용하지 않음
-from app.common.middleware.jwt_auth_middleware import AuthMiddleware
+# from app.common.middleware.jwt_auth_middleware import AuthMiddleware  # 삭제됨
 # ⛔ ServiceDiscovery / ServiceType 불필요
 # from app.domain.discovery.model.service_discovery import ServiceDiscovery
 # from app.domain.discovery.model.service_type import ServiceType
@@ -64,7 +64,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(AuthMiddleware)
+# app.add_middleware(AuthMiddleware)  # 임시 비활성화
 
 gateway_router = APIRouter(tags=["Gateway API"])
 # gateway_router.include_router(auth_router)  # 사용하지 않음
