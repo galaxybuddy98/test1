@@ -148,10 +148,10 @@ export default function LoginPage() {
       }
     );
 
-    // 로그인된 상태라면 홈으로 리디렉션
+    // 로그인된 상태라면 대시보드로 리디렉션
     const loggedIn = localStorage.getItem('loggedIn');
     if (loggedIn === 'true') {
-      router.push('/');
+      router.push('/about');
     }
     
     // Remember Me 기능

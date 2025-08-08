@@ -113,9 +113,9 @@ async def _relay(method: str, base_url: str, path: str, headers=None, body=None,
 
 
 # ===== 헬스 및 기본 =====
-@gateway_router.get("/health", summary="테스트 엔드포인트")
-async def health_check():
-    return {"status": "healthy!"}
+@gateway_router.get("/health", summary="API v1 헬스 체크")
+async def api_v1_health_check():
+    return {"status": "healthy!", "version": "v1"}
 
 
 @app.exception_handler(404)
@@ -129,16 +129,6 @@ async def not_found_handler(request: Request, exc):
 @app.get("/")
 async def root():
     return {"message": "Gateway API", "version": "0.1.0"}
-
-
-@app.get("/health", include_in_schema=False)
-def health():
-    return {"status": "ok"}
-
-
-@app.get("/api/v1/health", include_in_schema=False)
-def health_v1():
-    return {"status": "ok"}
 
 
 @app.post("/health")
@@ -290,13 +280,13 @@ async def proxy_patch(service: str, path: str, request: Request):
 
 # 루트 레벨 Health Check (prefix 없이)
 @app.get("/health")
-async def health_check():
+async def root_health_check():
     """루트 레벨 헬스 체크 - 프론트엔드 프록시용"""
     return {"status": "ok"}
 
 # API 레벨 Health Check (프론트엔드 프록시 /api/health용)
 @app.get("/api/health")
-async def api_health_check():
+async def frontend_proxy_health_check():
     """API 레벨 헬스 체크 - 프론트엔드 /api/health 프록시용"""
     return {"status": "ok"}
 

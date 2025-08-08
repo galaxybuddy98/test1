@@ -6,14 +6,75 @@ import { useRouter } from 'next/navigation';
 export default function HomePage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // 로그인 상태 확인
     const loggedIn = localStorage.getItem('loggedIn');
     if (loggedIn === 'true') {
       setIsLoggedIn(true);
+      // 이미 로그인된 경우 대시보드로 이동
+      router.push('/about');
+    } else {
+      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+      router.push('/login');
     }
-  }, []);
+    setIsLoading(false);
+  }, [router]);
+
+  // 로딩 중이면 로딩 화면 표시
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-content">
+          <div className="logo-icon">🏢</div>
+          <h1>ERIpotter</h1>
+          <div className="spinner"></div>
+          <p>로딩 중...</p>
+        </div>
+        <style jsx>{`
+          .loading-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+          .loading-content {
+            text-align: center;
+            color: white;
+          }
+          .logo-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+          }
+          .loading-content h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 24px 0;
+          }
+          .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px auto;
+          }
+          .loading-content p {
+            margin: 0;
+            opacity: 0.9;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   const handleGetStarted = () => {
     if (isLoggedIn) {
