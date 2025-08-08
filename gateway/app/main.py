@@ -184,12 +184,17 @@ async def test_signup_direct():
     return {"message": "직접 등록된 signup 성공!", "status": "OK"}
 
 # ===== 라우트 디버깅 =====
-@app.on_event("startup")
-async def startup_event():
+print("🔍 앱 시작 시 라우트 디버깅 시작")
+
+def debug_routes():
     print("🔍 등록된 모든 라우트:")
     for route in app.routes:
         if hasattr(route, 'path') and hasattr(route, 'methods'):
             print(f"  - {route.methods} {route.path}")
+        elif hasattr(route, 'path'):
+            print(f"  - [NO METHODS] {route.path}")
+    
+debug_routes()
 
 
 # ===== 동적 프록시 라우팅 =====
