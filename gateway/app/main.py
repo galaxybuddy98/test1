@@ -177,6 +177,20 @@ async def signup(request: Request):
 
 print("🔧 /signup 라우트가 등록됨!")
 
+# ===== 임시 테스트 - 직접 앱에 라우트 등록 =====
+@app.post("/test-signup")
+async def test_signup_direct():
+    print("🚀 직접 등록된 /test-signup 호출됨!")
+    return {"message": "직접 등록된 signup 성공!", "status": "OK"}
+
+# ===== 라우트 디버깅 =====
+@app.on_event("startup")
+async def startup_event():
+    print("🔍 등록된 모든 라우트:")
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            print(f"  - {route.methods} {route.path}")
+
 
 # ===== 동적 프록시 라우팅 =====
 @gateway_router.get("/{service}/{path:path}", summary="GET 프록시")
