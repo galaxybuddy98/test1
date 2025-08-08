@@ -128,7 +128,17 @@ async def not_found_handler(request: Request, exc):
 
 @app.get("/")
 async def root():
-    return {"message": "Gateway API", "version": "0.1.0"}
+    return {
+        "message": "Gateway API", 
+        "version": "0.1.0",
+        "port": os.getenv("PORT", "8080"),
+        "status": "running"
+    }
+
+@app.get("/test")
+async def test_endpoint():
+    """간단한 테스트 엔드포인트"""
+    return {"message": "Hello from Railway!", "status": "OK"}
 
 
 @app.post("/health")
@@ -293,5 +303,6 @@ async def frontend_proxy_health_check():
 # ===== 로컬 실행 =====
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("SERVICE_PORT", 8080))
+    # Railway PORT 환경변수 사용
+    port = int(os.getenv("PORT", os.getenv("SERVICE_PORT", 8080)))
     uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)

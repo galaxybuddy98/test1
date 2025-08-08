@@ -29,10 +29,10 @@
     HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
       CMD curl -fsS "http://localhost:${PORT:-8080}/health" || exit 1
     
-    # 비루트 사용자 (원하면 유지)
-    RUN groupadd -r appuser && useradd -r -g appuser appuser
-    USER appuser
+    # 권한 문제 방지를 위해 root 사용자로 실행
+    # RUN groupadd -r appuser && useradd -r -g appuser appuser
+    # USER appuser
     
-    # ★ Railway PORT 환경변수 처리
-    CMD sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port \${PORT:-8080}"
+    # ★ Railway PORT 환경변수 처리 - 완전한 shell form
+    CMD sh -c 'python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}'
     
