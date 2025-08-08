@@ -151,7 +151,8 @@ export default function RegisterPage() {
       };
 
       // 백엔드로 POST 요청 전송
-      const response = await fetch('http://localhost:8080/api/v1/signup', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${apiUrl}/api/v1/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

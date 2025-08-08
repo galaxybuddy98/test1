@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Gateway API",
-    description="Gateway API for http://ausikor.com",
+    description="Gateway API for http://api.eripotter.com",
     version="0.1.0",
     docs_url="/docs",
     lifespan=lifespan
@@ -288,6 +288,17 @@ async def proxy_patch(service: str, path: str, request: Request):
             status_code=500
         )
 
+# 루트 레벨 Health Check (prefix 없이)
+@app.get("/health")
+async def health_check():
+    """루트 레벨 헬스 체크 - 프론트엔드 프록시용"""
+    return {"status": "ok"}
+
+# API 레벨 Health Check (프론트엔드 프록시 /api/health용)
+@app.get("/api/health")
+async def api_health_check():
+    """API 레벨 헬스 체크 - 프론트엔드 /api/health 프록시용"""
+    return {"status": "ok"}
 
 # ===== 로컬 실행 =====
 if __name__ == "__main__":
