@@ -28,8 +28,13 @@ logger = logging.getLogger("gateway_api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Gateway API 서비스 시작")
-    # Settings 초기화 및 앱 state에 등록
-    app.state.settings = Settings()
+    # Settings 초기화 방어
+    try:
+        app.state.settings = Settings()
+        logger.info("✅ Settings 초기화 완료")
+    except Exception as e:
+        logger.warning(f"⚠️ Settings 초기화 실패, 계속 진행합니다: {e}")
+        app.state.settings = None
     yield
     logger.info("🛑 Gateway API 서비스 종료")
 
@@ -287,6 +292,10 @@ async def not_found_handler(request: Request, exc):
 @app.get("/")
 async def root():
     return {"message": "Gateway API", "version": "0.1.0"}
+
+@app.get("/health", include_in_schema=False)
+async def health():
+    return {"status": "ok"}
 
 # 간단한 health check (prefix 없이) - POST
 @app.post("/health")
