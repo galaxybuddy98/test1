@@ -163,7 +163,7 @@ export default function LoginPage() {
       }));
       setRememberMe(true);
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className="login-container">
