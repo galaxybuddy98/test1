@@ -148,16 +148,16 @@ async def simple_health_check_post():
     return {"status": "healthy!", "service": "Gateway API", "method": "POST"}
 
 
-# ===== 인증(예시) - 프록시보다 먼저 정의해야 함 =====
-@gateway_router.post("/login", summary="로그인")
+# ===== 인증(예시) - 직접 app에 등록 =====
+@app.post("/login", summary="로그인")
 async def login():
     print("🚀 /login 엔드포인트 호출됨!")
     return {"message": "로그인 요청 받음"}
 
-print("🔧 /login 라우트가 등록됨!")
+print("🔧 /login 라우트가 app에 직접 등록됨!")
 
 
-@gateway_router.post("/signup", summary="회원가입")
+@app.post("/signup", summary="회원가입")
 async def signup(request: Request):
     try:
         print("🚀 /signup 엔드포인트 호출됨!")
@@ -175,7 +175,7 @@ async def signup(request: Request):
         print(f"❌ 회원가입 요청 처리 중 오류: {str(e)}")
         return {"message": "회원가입 실패", "error": str(e)}
 
-print("🔧 /signup 라우트가 등록됨!")
+print("🔧 /signup 라우트가 app에 직접 등록됨!")
 
 # ===== 임시 테스트 - 직접 앱에 라우트 등록 =====
 @app.post("/test-signup")
