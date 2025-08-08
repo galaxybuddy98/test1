@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import httpx  # ✅ 추가: 프록시 요청 릴레이용
 
-from app.router.auth_router import auth_router
+# from app.router.auth_router import auth_router  # 사용하지 않음
 from app.common.middleware.jwt_auth_middleware import AuthMiddleware
 # ⛔ ServiceDiscovery / ServiceType 불필요
 # from app.domain.discovery.model.service_discovery import ServiceDiscovery
@@ -67,7 +67,7 @@ app.add_middleware(
 app.add_middleware(AuthMiddleware)
 
 gateway_router = APIRouter(tags=["Gateway API"])
-gateway_router.include_router(auth_router)
+# gateway_router.include_router(auth_router)  # 사용하지 않음
 app.include_router(gateway_router)
 
 # 🪡 파일이 필요한 서비스 목록 (현재는 없음)
@@ -157,6 +157,7 @@ async def login():
 @gateway_router.post("/signup", summary="회원가입")
 async def signup(request: Request):
     try:
+        print("🚀 /signup 엔드포인트 호출됨!")
         body = await request.body()
         if body:
             import json
