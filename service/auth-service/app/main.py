@@ -1,6 +1,6 @@
-import os, logging, sys, traceback
+import os, logging, sys
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -15,7 +15,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
-logger = logging.getLogger("assessment_service")
+logger = logging.getLogger("auth-service")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,6 +37,8 @@ app.add_middleware(
     allow_origins=[
         os.getenv("FRONTEND_ORIGIN", "http://localhost:3000"),
         os.getenv("GATEWAY_ORIGIN", "http://localhost:8080"),
+        "https://lme.eripotter.com",  # 프로덕션 도메인
+        "http://lme.eripotter.com",   # HTTP도 허용 (필요시)
     ],
     allow_origin_regex=r"https://.*\.railway\.app",
     allow_credentials=True,
@@ -44,18 +46,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    client_host = request.client.host if request.client else "unknown"
-    logger.info(f"📥 {request.method} {request.url.path} (client: {client_host})")
-    try:
-        response = await call_next(request)
-        logger.info(f"📤 {response.status_code} {request.url.path}")
-        return response
-    except Exception as e:
-        logger.error(f"❌ Error: {e}")
-        logger.error(traceback.format_exc())
-        raise
+# Prefix 통일
+# app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
+# app.include_router(assessment_router, prefix="/api/v1/assessments", tags=["assessments"])
 
 @app.get("/", include_in_schema=False)
 async def root():

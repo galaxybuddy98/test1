@@ -54,10 +54,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # 로컬 접근
-        "http://127.0.0.1:3000",  # 로컬 IP 접근
-        "http://frontend:3000",   # Docker 내부 네트워크
-    ],  # 필요 시 배포 도메인 추가
+        "https://lme.eripotter.com",  # 실제 프론트 도메인
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_origin_regex=r"https://.*\.railway\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
