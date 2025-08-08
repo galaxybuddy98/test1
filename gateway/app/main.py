@@ -69,6 +69,7 @@ app.add_middleware(AuthMiddleware)
 gateway_router = APIRouter(tags=["Gateway API"])
 # gateway_router.include_router(auth_router)  # 사용하지 않음
 app.include_router(gateway_router)
+print("🔧 gateway_router가 app에 등록됨!")
 
 # 🪡 파일이 필요한 서비스 목록 (현재는 없음)
 FILE_REQUIRED_SERVICES = set()
@@ -153,6 +154,8 @@ async def login():
     print("🚀 /login 엔드포인트 호출됨!")
     return {"message": "로그인 요청 받음"}
 
+print("🔧 /login 라우트가 등록됨!")
+
 
 @gateway_router.post("/signup", summary="회원가입")
 async def signup(request: Request):
@@ -171,6 +174,8 @@ async def signup(request: Request):
     except Exception as e:
         print(f"❌ 회원가입 요청 처리 중 오류: {str(e)}")
         return {"message": "회원가입 실패", "error": str(e)}
+
+print("🔧 /signup 라우트가 등록됨!")
 
 
 # ===== 동적 프록시 라우팅 =====
