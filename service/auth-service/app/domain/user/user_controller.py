@@ -110,8 +110,8 @@ class UserController:
     """사용자 인증 및 관리 컨트롤러 (참조용)"""
     
     def __init__(self):
-        self.router = auth_router
+        self.router = create_auth_router()
     
     @staticmethod
     def get_router():
-        return auth_router
+        return create_auth_router()
