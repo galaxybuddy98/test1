@@ -41,8 +41,8 @@ services:
       - ./service/account-service:/app
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/eripotter_db
-      - DEFAULT_DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/eripotter_db
+      - DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/eripotter_db
+      - DEFAULT_DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/eripotter_db
       - SECRET_KEY=your-super-secret-key-change-this-in-production
       - JWT_SECRET=your-super-secret-key-change-this-in-production
       - JWT_ALGORITHM=HS256
@@ -54,6 +54,8 @@ services:
       - RAILWAY_ENVIRONMENT=false
       - RAILWAY=false
     restart: always
+    depends_on:
+      - postgres
     networks:
       - app-network
 
@@ -132,6 +134,21 @@ services:
       - app-network
 
   # Database & Cache
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=eripotter_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -147,3 +164,6 @@ networks:
     ipam:
       config:
         - subnet: 172.25.0.0/16
+
+volumes:
+  postgres_data:
