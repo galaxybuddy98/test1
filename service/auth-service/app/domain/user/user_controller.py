@@ -74,6 +74,22 @@ def create_auth_router() -> APIRouter:
                 if not conn:
                     raise Exception("모든 연결 방법 실패")
                 
+                # 테이블이 없으면 생성
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id SERIAL PRIMARY KEY,
+                        username VARCHAR(50) UNIQUE NOT NULL,
+                        email VARCHAR(100) UNIQUE NOT NULL,
+                        password_hash VARCHAR(255) NOT NULL,
+                        company_id VARCHAR(100),
+                        role VARCHAR(20) DEFAULT 'user',
+                        is_active BOOLEAN DEFAULT true,
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                    );
+                """)
+                logger.info("✅ users 테이블 준비 완료")
+                
                 # 사용자명 중복 체크
                 existing = await conn.fetchval(
                     "SELECT id FROM users WHERE username = $1 OR email = $2",

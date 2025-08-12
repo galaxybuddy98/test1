@@ -32,13 +32,13 @@ DATABASE_URL = os.getenv(
     "postgresql+asyncpg://user:password@localhost:5432/eripotter_db"
 )
 
-# Railway 환경에서는 SSL이 필요할 수 있음
+# Railway 환경에서 postgres://를 postgresql+asyncpg://로 변경 (sslmode 제거)
 if DATABASE_URL and ("railway" in DATABASE_URL or "postgres://" in DATABASE_URL):
     # postgres://를 postgresql+asyncpg://로 변경
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://")
-    # SSL 설정 추가
-    if "sslmode" not in DATABASE_URL:
-        DATABASE_URL += "?sslmode=require"
+    # sslmode가 있으면 제거 (asyncpg는 sslmode를 지원하지 않음)
+    if "sslmode=" in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.split("?")[0]  # 쿼리 파라미터 모두 제거
 
 # asyncpg 드라이버 강제 설정
 if DATABASE_URL and not DATABASE_URL.startswith("postgresql+asyncpg://"):
@@ -64,26 +64,15 @@ AsyncSessionLocal = async_sessionmaker(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """앱 시작/종료 시 실행되는 함수"""
-    logger.info("🚀 Auth Service 시작 (DB 연결)")
-    logger.info(f"🔧 DATABASE_URL: {DATABASE_URL[:50]}...")
+    logger.info("🚀 Auth Service 시작")
+    logger.info(f"🔧 PORT={os.getenv('PORT')}  RAILWAY={os.getenv('RAILWAY')}")
     
-    try:
-        # 데이터베이스 테이블 생성
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("✅ 데이터베이스 테이블 생성 완료")
-    except Exception as e:
-        logger.error(f"❌ 데이터베이스 초기화 실패: {e}")
-        # DB 실패해도 서비스는 계속 실행 (더미 모드로 fallback)
-        logger.info("⚠️ 더미 모드로 계속 진행합니다")
+    # DB 연결은 필요할 때만 (user_controller에서 직접 처리)
+    logger.info("📦 Auth Service 준비 완료")
     
     yield
     
     logger.info("🛑 Auth Service 종료")
-    try:
-        await engine.dispose()
-    except:
-        pass
 
 # FastAPI 앱 생성
 app = FastAPI(
