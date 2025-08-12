@@ -9,10 +9,7 @@ from sqlalchemy.pool import NullPool
 from dotenv import load_dotenv
 
 # 도메인 임포트
-from app.domain.user.user_controller import create_auth_router, get_user_service
-from app.domain.user.user_model import Base
-from app.domain.user.user_Service import UserService
-from app.domain.user.user_repository import UserRepository
+from app.domain.user.model.user_model import Base
 
 # 환경 설정 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -24,7 +21,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
-logger = logging.getLogger("auth_service")
+logger = logging.getLogger("account_service")
 
 # 데이터베이스 설정
 DATABASE_URL = os.getenv(
@@ -64,7 +61,7 @@ AsyncSessionLocal = async_sessionmaker(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """앱 시작/종료 시 실행되는 함수"""
-    logger.info("🚀 Auth Service 시작")
+    logger.info("🚀 Account Service 시작")
     logger.info(f"🔧 PORT={os.getenv('PORT')}  RAILWAY={os.getenv('RAILWAY')}")
     
     # 앱 시작 시 users 테이블 생성
@@ -114,16 +111,16 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ DB 테이블 생성 실패: {e}")
         logger.info("⚠️ 서비스는 계속 진행됩니다")
     
-    logger.info("📦 Auth Service 준비 완료")
+    logger.info("📦 Account Service 준비 완료")
     
     yield
     
-    logger.info("🛑 Auth Service 종료")
+    logger.info("🛑 Account Service 종료")
 
 # FastAPI 앱 생성
 app = FastAPI(
-    title="Auth Service",
-    description="사용자 인증 및 권한 관리 서비스",
+    title="Account Service",
+    description="사용자 계정 관리 서비스",
     version="1.0.0",
     docs_url="/docs",
     lifespan=lifespan,
@@ -150,23 +147,17 @@ async def get_database():
         finally:
             await session.close()
 
-# UserService 의존성을 위한 오버라이드
-async def get_user_service_dependency(db: AsyncSession = Depends(get_database)) -> UserService:
-    user_repository = UserRepository(db)
-    return UserService(user_repository)
+# Router import
+from .router.user_router import router as user_router
 
-# 의존성 오버라이드 (user_controller의 get_user_service를 실제 DB 세션으로 대체)
-app.dependency_overrides[get_user_service] = get_user_service_dependency
-
-# 라우터 등록
-auth_router = create_auth_router()
-app.include_router(auth_router, prefix="/api/v1")
+# Router 등록
+app.include_router(user_router, prefix="/api/v1")
 
 # 기본 엔드포인트들
 @app.get("/", include_in_schema=False)
 async def root():
     return {
-        "service": "Auth Service",
+        "service": "Account Service",
         "version": "1.0.0",
         "status": "running",
         "endpoints": {
@@ -179,7 +170,7 @@ async def root():
 async def health_check():
     return {
         "status": "healthy",
-        "service": "Auth Service",
+        "service": "Account Service",
         "version": "1.0.0",
         "database": "connected" if engine else "disconnected"
     }

@@ -3,9 +3,13 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 import os
-from .user_repository import UserRepository
-from .user_entitiy import UserEntity
-from .user_model import UserCreate, UserLogin, UserResponse, TokenResponse
+import logging
+
+from ..repository.user_repository import UserRepository
+from ..entity.user_entity import UserEntity
+from ..model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
+
+logger = logging.getLogger("account_service")
 
 # 비밀번호 해싱 설정
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -99,24 +103,26 @@ class UserService:
         if not user:
             return None
         
-        # JWT 토큰 생성
+        # 액세스 토큰 생성
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = self.create_access_token(
-            data={"sub": user.username, "user_id": user.id, "role": user.role}
+            data={"sub": user.username}, expires_delta=access_token_expires
         )
         
         return TokenResponse(
             access_token=access_token,
+            token_type="bearer",
             user=user
         )
     
     async def get_current_user(self, token: str) -> Optional[UserResponse]:
         """토큰으로 현재 사용자 조회"""
         payload = self.verify_token(token)
-        if not payload:
+        if payload is None:
             return None
         
-        username = payload.get("sub")
-        if not username:
+        username: str = payload.get("sub")
+        if username is None:
             return None
         
         user = await self.user_repository.get_user_by_username(username)
