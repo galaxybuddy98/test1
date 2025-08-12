@@ -152,65 +152,8 @@ async def account_proxy(request: Request, path: str):
     try:
         logger.info(f"🔍 Account 프록시 요청: {request.method} {request.url.path}")
         
-        # 로그인/회원가입 요청인 경우 직접 처리 (account-service가 사용 불가능하므로)
-        if (path == "login" or path == "register") and request.method == "POST":
-            logger.info(f"🔧 {path} 요청을 직접 처리합니다.")
-            body = await request.body()
-            if body:
-                import json
-                try:
-                    data = json.loads(body)
-                    logger.info(f"🔧 {path} 데이터: {data}")
-                    
-                    if path == "login":
-                        # 로그인 로직
-                        if (data.get("email") or data.get("username")) and data.get("password"):
-                            username = data.get("username") or data.get("email", "").split('@')[0]
-                            return JSONResponse(
-                                status_code=200,
-                                content={
-                                    "access_token": "dummy_token_12345",
-                                    "token_type": "bearer",
-                                    "user_id": 1,
-                                    "username": username,
-                                    "message": "로그인 성공"
-                                }
-                            )
-                        else:
-                            return JSONResponse(
-                                status_code=400,
-                                content={"detail": "사용자명(또는 이메일)과 비밀번호가 필요합니다."}
-                            )
-                    
-                    elif path == "register":
-                        # 회원가입 로직
-                        required_fields = ["username", "email", "password"]
-                        if all(field in data for field in required_fields):
-                            return JSONResponse(
-                                status_code=201,
-                                content={
-                                    "id": 1,
-                                    "username": data.get("username"),
-                                    "email": data.get("email"),
-                                    "message": "회원가입이 완료되었습니다."
-                                }
-                            )
-                        else:
-                            return JSONResponse(
-                                status_code=400,
-                                content={"detail": "사용자명, 이메일, 비밀번호가 모두 필요합니다."}
-                            )
-                    
-                except json.JSONDecodeError:
-                    return JSONResponse(
-                        status_code=400,
-                        content={"detail": "잘못된 JSON 형식입니다."}
-                    )
-            else:
-                return JSONResponse(
-                    status_code=400,
-                    content={"detail": "요청 본문이 비어 있습니다."}
-                )
+        # 모든 요청을 account-service로 프록시
+        logger.info(f"🔧 {path} 요청을 account-service로 프록시합니다.")
         
         # 다른 요청들은 기존 프록시 로직 사용
         account_url = os.getenv('ACCOUNT_SERVICE_URL', 'NOT_SET')
