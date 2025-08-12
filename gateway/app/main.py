@@ -174,7 +174,7 @@ async def auth_proxy(request: Request, path: str):
         raise HTTPException(status_code=500, detail=f"Auth 서비스 연결 실패: {str(e)}")
 
 # ===== Chatbot 구체적인 라우트들 (app 레벨에 직접 등록) =====
-@app.get("/api/chatbot/health")
+@app.get("/chatbot/health")
 async def chatbot_health_proxy(request: Request):
     """Chatbot health check 프록시"""
     logger.error("🚨🤖 CHATBOT HEALTH 호출됨!!!")
@@ -192,7 +192,7 @@ async def chatbot_health_proxy(request: Request):
         logger.error(f"Chatbot health 오류: {e}")
         return {"error": str(e)}
 
-@app.post("/api/chatbot/send")
+@app.post("/chatbot/send")
 async def chatbot_send_proxy(request: Request):
     """Chatbot send message 프록시"""
     logger.error("🚨🤖 CHATBOT SEND 호출됨!!!")
@@ -220,7 +220,7 @@ async def chatbot_send_proxy(request: Request):
         return {"error": str(e)}
 
 # ===== 테스트용 간단한 chatbot 라우트 =====
-@app.get("/api/chatbot/test")
+@app.get("/chatbot/test")
 async def chatbot_test():
     """chatbot 라우트 테스트"""
     logger.error("🚨 /api/chatbot/test 라우트 호출됨!!!")
