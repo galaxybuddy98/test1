@@ -10,7 +10,7 @@ from app.domain.user.model.user_model import UserCreate, UserLogin, UserResponse
 # JWT 토큰 검증을 위한 security
 security = HTTPBearer()
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/account", tags=["Account"])
 
 # 의존성 주입 함수들
 def get_user_controller() -> UserController:

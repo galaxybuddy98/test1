@@ -162,7 +162,7 @@ async def root():
         "status": "running",
         "endpoints": {
             "docs": "/docs",
-            "auth": "/api/v1/auth"
+            "account": "/api/v1/account"
         }
     }
 

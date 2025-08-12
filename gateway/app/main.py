@@ -16,6 +16,7 @@ import httpx  # ✅ 추가: 프록시 요청 릴레이용
 # from app.domain.discovery.model.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
+from app.router.user_router import router as user_router
 
 # ===== 환경 설정 =====
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -85,7 +86,7 @@ def _get_base_url(service: str) -> str:
             raise RuntimeError("ENV ASSESSMENT_SERVICE_URL 가 설정되지 않았습니다.")
         return url.rstrip("/")
     
-    if service == "auth":
+    if service == "account":
         url = os.getenv("ACCOUNT_SERVICE_URL")
         if not url:
             raise RuntimeError("ENV ACCOUNT_SERVICE_URL 가 설정되지 않았습니다.")
@@ -145,22 +146,22 @@ async def _relay(method: str, base_url: str, path: str, headers=None, body=None,
 
 
 # ===== Auth 서비스 프록시 =====
-@gateway_router.api_route("/api/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def auth_proxy(request: Request, path: str):
-    """Auth 서비스로 모든 요청을 프록시 (/api/auth/*)"""
+@gateway_router.api_route("/api/account/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def account_proxy(request: Request, path: str):
+    """Account 서비스로 모든 요청을 프록시 (/api/account/*)"""
     try:
-        logger.info(f"🔍 Auth 프록시 요청: {request.method} {request.url.path}")
-        auth_url = os.getenv('ACCOUNT_SERVICE_URL', 'NOT_SET')
-        logger.info(f"🔍 ACCOUNT_SERVICE_URL: {auth_url}")
+        logger.info(f"🔍 Account 프록시 요청: {request.method} {request.url.path}")
+        account_url = os.getenv('ACCOUNT_SERVICE_URL', 'NOT_SET')
+        logger.info(f"🔍 ACCOUNT_SERVICE_URL: {account_url}")
         
         # 임시 fallback (Railway 환경변수 문제 시)
-        if auth_url == 'NOT_SET':
+        if account_url == 'NOT_SET':
             # account-service의 실제 도메인
-            auth_url = "https://account-service-production-ce3c.up.railway.app"
-            logger.info(f"🔧 임시 ACCOUNT_SERVICE_URL 사용: {auth_url}")
-            base_url = auth_url
+            account_url = "https://account-service-production-ce3c.up.railway.app"
+            logger.info(f"🔧 임시 ACCOUNT_SERVICE_URL 사용: {account_url}")
+            base_url = account_url
         else:
-            base_url = _get_base_url("auth")
+            base_url = _get_base_url("account")
         logger.info(f"🔍 Base URL: {base_url}")
         
         # 요청 본문 읽기
@@ -256,6 +257,10 @@ async def chatbot_proxy(request: Request, path: str):
 # ===== gateway_router 등록 =====
 app.include_router(gateway_router)
 print("🔧 gateway_router가 app에 등록됨 (auth_proxy, chatbot_proxy 포함)!")
+
+# ===== user_router 등록 =====
+app.include_router(user_router)
+print("🔧 user_router가 app에 등록됨!")
 
 # 디버그: 등록된 라우트 확인
 print("🔍 등록된 라우트 목록:")

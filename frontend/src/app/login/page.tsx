@@ -64,7 +64,7 @@ export default function LoginPage() {
       console.log('Axios를 사용하여 로그인 요청 준비 중...');
       
       // 실제 auth-service API 호출
-      const response = await axios.post('/api/auth/login', {
+              const response = await axios.post('/api/account/login', {
         username: userData.user_id,
         password: userData.user_pw
       });
