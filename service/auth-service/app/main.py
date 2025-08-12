@@ -67,7 +67,53 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Auth Service 시작")
     logger.info(f"🔧 PORT={os.getenv('PORT')}  RAILWAY={os.getenv('RAILWAY')}")
     
-    # DB 연결은 필요할 때만 (user_controller에서 직접 처리)
+    # 앱 시작 시 users 테이블 생성
+    try:
+        import asyncpg
+        DATABASE_URL = os.getenv("DATABASE_URL", "")
+        if DATABASE_URL:
+            # asyncpg 연결용 URL 정리
+            conn_str = DATABASE_URL.replace("postgres://", "postgresql://").split("?")[0]
+            
+            # 여러 SSL 옵션 시도해서 연결
+            conn = None
+            for ssl_option in ['require', True, False, None]:
+                try:
+                    if ssl_option is None:
+                        conn = await asyncpg.connect(conn_str)
+                    else:
+                        conn = await asyncpg.connect(conn_str, ssl=ssl_option)
+                    logger.info(f"✅ 시작 시 DB 연결 성공 (SSL: {ssl_option})")
+                    break
+                except Exception as e:
+                    logger.warning(f"❌ 시작 시 DB 연결 실패 (SSL: {ssl_option}): {e}")
+                    continue
+            
+            if conn:
+                # users 테이블 생성
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id SERIAL PRIMARY KEY,
+                        username VARCHAR(50) UNIQUE NOT NULL,
+                        email VARCHAR(100) UNIQUE NOT NULL,
+                        password_hash VARCHAR(255) NOT NULL,
+                        company_id VARCHAR(100),
+                        role VARCHAR(20) DEFAULT 'user',
+                        is_active BOOLEAN DEFAULT true,
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                    );
+                """)
+                logger.info("✅ users 테이블 생성 완료")
+                await conn.close()
+            else:
+                logger.error("❌ 모든 DB 연결 방법 실패")
+        else:
+            logger.warning("⚠️ DATABASE_URL이 설정되지 않음")
+    except Exception as e:
+        logger.error(f"❌ DB 테이블 생성 실패: {e}")
+        logger.info("⚠️ 서비스는 계속 진행됩니다")
+    
     logger.info("📦 Auth Service 준비 완료")
     
     yield
