@@ -173,67 +173,13 @@ async def auth_proxy(request: Request, path: str):
         logger.error(f"Auth 프록시 오류: {e}")
         raise HTTPException(status_code=500, detail=f"Auth 서비스 연결 실패: {str(e)}")
 
-# ===== Chatbot 구체적인 라우트들 (app 레벨에 직접 등록) =====
-@app.get("/chatbot/health")
-async def chatbot_health_proxy(request: Request):
-    """Chatbot health check 프록시"""
-    logger.error("🚨🤖 CHATBOT HEALTH 호출됨!!!")
-    print("🚨🤖 CHATBOT HEALTH 호출됨!!!")
-    try:
-        chatbot_url = os.getenv('CHATBOT_SERVICE_URL', 'NOT_SET')
-        if chatbot_url == 'NOT_SET':
-            chatbot_url = "https://chatbot-service-production-1d24.up.railway.app"
-        
-        import httpx
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{chatbot_url}/health")
-            return response.json()
-    except Exception as e:
-        logger.error(f"Chatbot health 오류: {e}")
-        return {"error": str(e)}
-
-@app.post("/chatbot/send")
-async def chatbot_send_proxy(request: Request):
-    """Chatbot send message 프록시"""
-    logger.error("🚨🤖 CHATBOT SEND 호출됨!!!")
-    print("🚨🤖 CHATBOT SEND 호출됨!!!")
-    try:
-        chatbot_url = os.getenv('CHATBOT_SERVICE_URL', 'NOT_SET')
-        if chatbot_url == 'NOT_SET':
-            chatbot_url = "https://chatbot-service-production-1d24.up.railway.app"
-        
-        body = await request.body()
-        headers = dict(request.headers)
-        headers.pop("host", None)
-        headers.pop("content-length", None)
-        
-        import httpx
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{chatbot_url}/api/v1/chat/send",
-                content=body,
-                headers=headers
-            )
-            return response.json()
-    except Exception as e:
-        logger.error(f"Chatbot send 오류: {e}")
-        return {"error": str(e)}
-
-# ===== 테스트용 간단한 chatbot 라우트 =====
-@app.get("/chatbot/test")
-async def chatbot_test():
-    """chatbot 라우트 테스트"""
-    logger.error("🚨 /api/chatbot/test 라우트 호출됨!!!")
-    print("🚨 /api/chatbot/test 라우트 호출됨!!!")
-    return {"message": "chatbot 라우트 작동 중!", "service": "gateway->chatbot"}
-
-# ===== Chatbot 서비스 프록시 (일반용) =====
-@gateway_router.api_route("/api/chatbot/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def chatbot_proxy(request: Request, full_path: str):
+# ===== Chatbot 서비스 프록시 (auth와 동일한 형식) =====
+@gateway_router.api_route("/api/chatbot/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def chatbot_proxy(request: Request, path: str):
     """Chatbot 서비스로 모든 요청을 프록시 (/api/chatbot/*)"""
     try:
-        logger.error(f"🚨🤖 CHATBOT PROXY 호출됨!!! - {request.method} {request.url.path} - full_path={full_path}")
-        print(f"🚨🤖 CHATBOT PROXY 호출됨!!! - {request.method} {request.url.path} - full_path={full_path}")
+        logger.error(f"🚨🤖 CHATBOT PROXY 호출됨!!! - {request.method} {request.url.path} - path={path}")
+        print(f"🚨🤖 CHATBOT PROXY 호출됨!!! - {request.method} {request.url.path} - path={path}")
         logger.info(f"🤖 Chatbot 프록시 요청: {request.method} {request.url.path}")
         chatbot_url = os.getenv('CHATBOT_SERVICE_URL', 'NOT_SET')
         logger.info(f"🔍 CHATBOT_SERVICE_URL: {chatbot_url}")
@@ -256,7 +202,7 @@ async def chatbot_proxy(request: Request, full_path: str):
         headers.pop("content-length", None)
         
         # chatbot-service는 /api/v1/chat/* 경로를 사용하므로 경로 변환
-        chatbot_service_path = f"api/v1/chat/{full_path}"
+        chatbot_service_path = f"api/v1/chat/{path}"
         
         response = await _relay(
             method=request.method,
@@ -276,6 +222,8 @@ async def chatbot_proxy(request: Request, full_path: str):
     except Exception as e:
         logger.error(f"Chatbot 프록시 오류: {e}")
         raise HTTPException(status_code=500, detail=f"Chatbot 서비스 연결 실패: {str(e)}")
+
+# ===== 기존 chatbot_proxy 함수 제거 (중복) =====
 
 # ===== gateway_router 등록 =====
 app.include_router(gateway_router)
