@@ -148,10 +148,10 @@ async def get_database():
             await session.close()
 
 # Router import
-from app.router.user_router import router as user_router
+from app.router.user_router import router
 
 # Router 등록
-app.include_router(user_router, prefix="/api/v1")
+app.include_router(router, prefix="/api/v1")
 
 # 기본 엔드포인트들
 @app.get("/", include_in_schema=False)
