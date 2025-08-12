@@ -1,7 +1,7 @@
 from typing import Optional, List
 from fastapi import APIRouter, FastAPI, Request, UploadFile, File, Query, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 import os
 import logging
 import sys
@@ -119,6 +119,40 @@ async def _relay(method: str, base_url: str, path: str, headers=None, body=None,
         return resp
 
 
+# ===== Auth 서비스 프록시 =====
+@gateway_router.api_route("/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def auth_proxy(request: Request, path: str):
+    """Auth 서비스로 모든 요청을 프록시"""
+    try:
+        base_url = _get_base_url("auth")
+        
+        # 요청 본문 읽기
+        body = await request.body()
+        
+        # 헤더에서 불필요한 것들 제거
+        headers = dict(request.headers)
+        headers.pop("host", None)
+        headers.pop("content-length", None)
+        
+        response = await _relay(
+            method=request.method,
+            base_url=base_url,
+            path=path,
+            headers=headers,
+            body=body,
+            params=dict(request.query_params)
+        )
+        
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=dict(response.headers)
+        )
+        
+    except Exception as e:
+        logger.error(f"Auth 프록시 오류: {e}")
+        raise HTTPException(status_code=500, detail=f"Auth 서비스 연결 실패: {str(e)}")
+
 # ===== 헬스 및 기본 =====
 @gateway_router.get("/health", summary="API v1 헬스 체크")
 async def api_v1_health_check():
@@ -195,10 +229,20 @@ print("🔍 앱 시작 시 라우트 디버깅 시작")
 def debug_routes():
     print("🔍 등록된 모든 라우트:")
     for route in app.routes:
-        if hasattr(route, 'path') and hasattr(route, 'methods'):
-            print(f"  - {route.methods} {route.path}")
-        elif hasattr(route, 'path'):
-            print(f"  - [NO METHODS] {route.path}")
+        try:
+            # 안전한 속성 접근
+            methods = getattr(route, 'methods', None)
+            path = getattr(route, 'path', None)
+            
+            if methods and path:
+                print(f"  - {methods} {path}")
+            elif path:
+                print(f"  - [NO METHODS] {path}")
+            else:
+                print(f"  - [ROUTE] {type(route).__name__}")
+        except Exception:
+            # 모든 예외를 무시하고 계속
+            print(f"  - [ROUTE] {type(route).__name__}")
     
 debug_routes()
 
