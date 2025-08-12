@@ -184,8 +184,7 @@ async def chatbot_proxy(request: Request, path: str):
         
         # 임시 fallback (Railway 환경변수 문제 시)
         if chatbot_url == 'NOT_SET':
-            # chatbot-service의 실제 도메인으로 교체 필요
-            chatbot_url = "https://chatbot-service-production-xxxx.up.railway.app"
+            chatbot_url = "https://chatbot-service-production-1d24.up.railway.app"
             logger.info(f"🔧 임시 CHATBOT_SERVICE_URL 사용: {chatbot_url}")
             base_url = chatbot_url
         else:
