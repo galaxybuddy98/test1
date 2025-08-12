@@ -112,8 +112,8 @@ export default function LoginPage() {
 
   // 컴포넌트 초기화 및 axios 설정
   useEffect(() => {
-    // axios 기본 설정 - Railway 배포 환경
-    const apiBaseURL = 'https://lme.eripotter.com';
+    // axios 기본 설정 - Gateway를 통한 API 요청
+    const apiBaseURL = 'https://api.eripotter.com';
     axios.defaults.baseURL = apiBaseURL;
     axios.defaults.timeout = 10000; // 10초 타임아웃
     axios.defaults.headers.common['Content-Type'] = 'application/json';

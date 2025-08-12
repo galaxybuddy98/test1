@@ -177,8 +177,8 @@ async def account_proxy(request: Request, path: str):
         headers.pop("host", None)
         headers.pop("content-length", None)
         
-        # account-service는 /api/v1/account/* 경로를 사용하므로 경로 변환
-        auth_service_path = f"api/v1/account/{path}"
+        # account-service는 /api/account/* 경로를 사용하므로 경로 변환
+        auth_service_path = f"api/account/{path}"
         
         response = await _relay(
             method=request.method,
