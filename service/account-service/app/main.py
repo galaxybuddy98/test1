@@ -148,7 +148,7 @@ async def get_database():
             await session.close()
 
 # Router import
-from .router.user_router import router as user_router
+from app.router.user_router import router as user_router
 
 # 의존성 오버라이드 제거 - Controller에서 직접 DB 연결 처리
 

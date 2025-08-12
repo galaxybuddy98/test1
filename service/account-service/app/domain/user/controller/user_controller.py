@@ -4,9 +4,9 @@ import logging
 import asyncpg
 import os
 
-from ..service.user_service import UserService
-from ..repository.user_repository import UserRepository
-from ..model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
+from app.domain.user.service.user_service import UserService
+from app.domain.user.repository.user_repository import UserRepository
+from app.domain.user.model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
 
 logger = logging.getLogger("account_service")
 

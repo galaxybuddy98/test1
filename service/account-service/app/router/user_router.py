@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
-from ..domain.user.controller.user_controller import UserController
-from ..domain.user.service.user_service import UserService
-from ..domain.user.repository.user_repository import UserRepository
-from ..domain.user.model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
+from app.domain.user.controller.user_controller import UserController
+from app.domain.user.service.user_service import UserService
+from app.domain.user.repository.user_repository import UserRepository
+from app.domain.user.model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
