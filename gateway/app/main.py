@@ -16,7 +16,7 @@ import httpx  # ✅ 추가: 프록시 요청 릴레이용
 # from app.domain.discovery.model.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
-from app.router.user_router import router as user_router
+# from app.router.user_router import router as user_router  # 임시 비활성화
 
 # ===== 환경 설정 =====
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -163,21 +163,23 @@ async def account_proxy(request: Request, path: str):
                     logger.info(f"🔧 로그인 데이터: {data}")
                     
                     # 간단한 로그인 로직 (실제로는 JWT 토큰 생성 등이 필요)
-                    if data.get("email") and data.get("password"):
+                    if (data.get("email") or data.get("username")) and data.get("password"):
+                        # username 또는 email 중 하나라도 있으면 로그인 성공으로 처리
+                        username = data.get("username") or data.get("email", "").split('@')[0]
                         return JSONResponse(
                             status_code=200,
                             content={
                                 "access_token": "dummy_token_12345",
                                 "token_type": "bearer",
                                 "user_id": 1,
-                                "username": data.get("email", "").split('@')[0],
+                                "username": username,
                                 "message": "로그인 성공"
                             }
                         )
                     else:
                         return JSONResponse(
                             status_code=400,
-                            content={"detail": "이메일과 비밀번호가 필요합니다."}
+                            content={"detail": "사용자명(또는 이메일)과 비밀번호가 필요합니다."}
                         )
                 except json.JSONDecodeError:
                     return JSONResponse(
@@ -299,8 +301,8 @@ app.include_router(gateway_router)
 print("🔧 gateway_router가 app에 등록됨 (auth_proxy, chatbot_proxy 포함)!")
 
 # ===== user_router 등록 =====
-app.include_router(user_router)
-print("🔧 user_router가 app에 등록됨!")
+# app.include_router(user_router)  # 임시 비활성화
+# print("🔧 user_router가 app에 등록됨!")
 
 # 디버그: 등록된 라우트 확인
 print("🔍 등록된 라우트 목록:")
