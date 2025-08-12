@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 # 도메인 임포트
 from app.domain.user.user_model import Base
-from app.domain.user.user_controller import auth_router, get_user_service
+from app.domain.user.user_controller import create_auth_router, get_user_service
 from app.domain.user.user_Service import UserService
 from app.domain.user.user_repository import UserRepository
 
@@ -111,7 +111,8 @@ async def get_user_service_dependency(db: AsyncSession = Depends(get_database)) 
 # 의존성 오버라이드 (auth_controller의 get_user_service를 실제 DB 세션으로 대체)
 app.dependency_overrides[get_user_service] = get_user_service_dependency
 
-# 라우터 등록
+# 라우터 생성 및 등록
+auth_router = create_auth_router()
 app.include_router(auth_router, prefix="/api/v1")
 
 # 기본 엔드포인트들
