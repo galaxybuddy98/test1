@@ -6,7 +6,6 @@ python-multipart
 # 데이터베이스 (SQLAlchemy 포함)
 sqlalchemy
 asyncpg
-psycopg2-binary
 
 # 인증 및 보안
 python-jose[cryptography]

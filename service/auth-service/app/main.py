@@ -33,12 +33,19 @@ DATABASE_URL = os.getenv(
 )
 
 # Railway 환경에서는 SSL이 필요할 수 있음
-if "railway" in DATABASE_URL or "postgres://" in DATABASE_URL:
+if DATABASE_URL and ("railway" in DATABASE_URL or "postgres://" in DATABASE_URL):
     # postgres://를 postgresql+asyncpg://로 변경
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://")
     # SSL 설정 추가
     if "sslmode" not in DATABASE_URL:
         DATABASE_URL += "?sslmode=require"
+
+# asyncpg 드라이버 강제 설정
+if DATABASE_URL and not DATABASE_URL.startswith("postgresql+asyncpg://"):
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+    
+logger.info(f"🔧 최종 DATABASE_URL: {DATABASE_URL[:50]}...")
 
 # 비동기 데이터베이스 엔진 생성
 engine = create_async_engine(
