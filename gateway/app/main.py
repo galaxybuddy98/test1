@@ -191,6 +191,11 @@ async def chatbot_proxy(request: Request, path: str):
             base_url = chatbot_url
         else:
             base_url = _get_base_url("chatbot")
+            
+        # URL에 프로토콜이 없으면 https:// 추가
+        if not base_url.startswith(('http://', 'https://')):
+            base_url = f"https://{base_url}"
+            logger.info(f"🔧 프로토콜 추가됨: {base_url}")
         logger.info(f"🔍 Base URL: {base_url}")
         
         # 요청 본문 읽기

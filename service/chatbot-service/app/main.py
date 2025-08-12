@@ -134,8 +134,8 @@ langchain_service = SimpleLangChainService()
 
 @app.post("/api/v1/chat/send", response_model=LangChainResponse, summary="메시지 전송")
 async def send_message(
-    message_request: ChatMessageRequest,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    message_request: ChatMessageRequest
+    # credentials: HTTPAuthorizationCredentials = Depends(security)  # 임시 비활성화
 ):
     """AI 채팅봇에게 메시지를 전송하고 응답을 받습니다."""
     try:
