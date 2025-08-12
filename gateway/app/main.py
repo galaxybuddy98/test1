@@ -68,8 +68,8 @@ app.add_middleware(
 
 gateway_router = APIRouter(tags=["Gateway API"])
 # gateway_router.include_router(auth_router)  # 사용하지 않음
-app.include_router(gateway_router)
-print("🔧 gateway_router가 app에 등록됨!")
+# 라우터 등록은 모든 라우트 정의 후에 할 예정
+print("🔧 gateway_router 생성됨!")
 
 # 🪡 파일이 필요한 서비스 목록 (현재는 없음)
 FILE_REQUIRED_SERVICES = set()
@@ -382,6 +382,10 @@ async def root_health_check():
 async def frontend_proxy_health_check():
     """API 레벨 헬스 체크 - 프론트엔드 /api/health 프록시용"""
     return {"status": "ok"}
+
+# ===== 라우터 등록 (모든 라우트 정의 후) =====
+app.include_router(gateway_router)
+print("🔧 gateway_router가 app에 최종 등록됨!")
 
 # ===== 로컬 실행 =====
 if __name__ == "__main__":
