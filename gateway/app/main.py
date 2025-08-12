@@ -225,6 +225,15 @@ async def chatbot_proxy(request: Request, path: str):
 app.include_router(gateway_router)
 print("🔧 gateway_router가 app에 등록됨 (auth_proxy, chatbot_proxy 포함)!")
 
+# 디버그: 등록된 라우트 확인
+print("🔍 등록된 라우트 목록:")
+for route in app.routes:
+    if hasattr(route, 'path') and hasattr(route, 'methods'):
+        print(f"  - {route.methods} {route.path}")
+    elif hasattr(route, 'path'):
+        print(f"  - {route.path}")
+print("🔍 라우트 확인 완료")
+
 # ===== 헬스 및 기본 =====
 @gateway_router.get("/health", summary="API v1 헬스 체크")
 async def api_v1_health_check():
@@ -448,9 +457,8 @@ async def frontend_proxy_health_check():
     """API 레벨 헬스 체크 - 프론트엔드 /api/health 프록시용"""
     return {"status": "ok"}
 
-# ===== 라우터 이미 등록됨 =====
-# app.include_router(gateway_router)  # 이미 등록됨
-print("🔧 gateway_router 이미 등록 완료!")
+# ===== 라우터 이미 등록 완료 =====
+print("🔧 모든 라우터 등록 완료!")
 
 # ===== 로컬 실행 =====
 if __name__ == "__main__":
