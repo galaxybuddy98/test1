@@ -255,8 +255,8 @@ async def chatbot_proxy(request: Request, full_path: str):
         headers.pop("host", None)
         headers.pop("content-length", None)
         
-                        # chatbot-service는 /api/v1/chat/* 경로를 사용하므로 경로 변환
-                chatbot_service_path = f"api/v1/chat/{full_path}"
+        # chatbot-service는 /api/v1/chat/* 경로를 사용하므로 경로 변환
+        chatbot_service_path = f"api/v1/chat/{full_path}"
         
         response = await _relay(
             method=request.method,
@@ -284,10 +284,18 @@ print("🔧 gateway_router가 app에 등록됨 (auth_proxy, chatbot_proxy 포함
 # 디버그: 등록된 라우트 확인
 print("🔍 등록된 라우트 목록:")
 for route in app.routes:
-    if hasattr(route, 'path') and hasattr(route, 'methods'):
-        print(f"  - {route.methods} {route.path}")
-    elif hasattr(route, 'path'):
-        print(f"  - {route.path}")
+    try:
+        methods = getattr(route, 'methods', None)
+        path = getattr(route, 'path', None)
+        
+        if methods and path:
+            print(f"  - {methods} {path}")
+        elif path:
+            print(f"  - [NO METHODS] {path}")
+        else:
+            print(f"  - [ROUTE] {type(route).__name__}")
+    except Exception:
+        print(f"  - [ROUTE] {type(route).__name__}")
 print("🔍 라우트 확인 완료")
 
 # 라우트 우선순위 경고
