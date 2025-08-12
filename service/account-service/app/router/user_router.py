@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Dict, Any
 
 from app.domain.user.controller.user_controller import UserController
 from app.domain.user.service.user_service import UserService
 from app.domain.user.repository.user_repository import UserRepository
 from app.domain.user.model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
+
+# JWT 토큰 검증을 위한 security
+security = HTTPBearer()
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -30,10 +34,11 @@ async def login(
 
 @router.get("/me", response_model=UserResponse, summary="현재 사용자 정보")
 async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     controller: UserController = Depends(get_user_controller)
 ):
     """현재 로그인한 사용자의 정보를 조회합니다."""
-    return await controller.get_current_user()
+    return await controller.get_current_user(credentials)
 
 @router.get("/health", summary="서비스 상태 확인")
 async def health_check():
