@@ -3,7 +3,7 @@ import logging
 import json
 import time
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -72,7 +72,7 @@ class SimpleLangChainService:
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         logger.info(f"🔑 OpenAI API Key: {'설정됨' if self.openai_api_key else '설정 안됨 (더미 모드)'}")
     
-    async def generate_response(self, message: str, chat_history: List = None, context: Dict = None) -> Dict:
+    async def generate_response(self, message: str, chat_history: Optional[List] = None, context: Optional[Dict] = None) -> Dict:
         """AI 응답 생성"""
         start_time = time.time()
         
@@ -122,7 +122,7 @@ class SimpleLangChainService:
         
         return f"'{message}'에 대해 분석해보겠습니다. 중소기업 진단 관련하여 재무, 운영, 마케팅, 인사 등 어떤 분야에 대해 더 자세히 알고 싶으신가요?"
     
-    async def _generate_openai_response(self, message: str, chat_history: List = None, context: Dict = None) -> str:
+    async def _generate_openai_response(self, message: str, chat_history: Optional[List] = None, context: Optional[Dict] = None) -> str:
         """OpenAI API를 사용한 응답 생성 (향후 구현)"""
         # TODO: 실제 OpenAI API 호출 구현
         return "실제 OpenAI API 응답 (구현 예정)"
@@ -151,7 +151,7 @@ async def send_message(
         ai_result = await langchain_service.generate_response(
             message=message_request.message,
             chat_history=[],  # TODO: 실제 채팅 히스토리 조회
-            context=message_request.context
+            context=message_request.context or {}
         )
         
         logger.info(f"✅ AI 응답 생성 완료: {ai_result['response'][:50]}...")
