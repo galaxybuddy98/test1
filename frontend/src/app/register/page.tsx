@@ -162,8 +162,11 @@ export default function RegisterPage() {
         role: "admin"
       };
 
-      // auth-service API 호출
-      const response = await fetch('/api/auth/register', {
+      // Gateway를 통한 auth-service API 호출
+      const apiBaseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://api.eripotter.com' 
+        : 'http://localhost:8080';
+      const response = await fetch(`${apiBaseURL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
