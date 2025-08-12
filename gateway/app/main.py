@@ -16,7 +16,7 @@ import httpx  # ✅ 추가: 프록시 요청 릴레이용
 # from app.domain.discovery.model.service_type import ServiceType
 from app.common.utility.constant.settings import Settings
 from app.common.utility.factory.response_factory import ResponseFactory
-# from app.router.user_router import router as user_router  # 임시 비활성화
+
 
 # ===== 환경 설정 =====
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -263,9 +263,7 @@ async def chatbot_proxy(request: Request, path: str):
 app.include_router(gateway_router)
 print("🔧 gateway_router가 app에 등록됨 (auth_proxy, chatbot_proxy 포함)!")
 
-# ===== user_router 등록 =====
-# app.include_router(user_router)  # 임시 비활성화
-# print("🔧 user_router가 app에 등록됨!")
+
 
 # 디버그: 등록된 라우트 확인
 print("🔍 등록된 라우트 목록:")
