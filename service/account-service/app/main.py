@@ -150,6 +150,8 @@ async def get_database():
 # Router import
 from .router.user_router import router as user_router
 
+# 의존성 오버라이드 제거 - Controller에서 직접 DB 연결 처리
+
 # Router 등록
 app.include_router(user_router, prefix="/api/v1")
 

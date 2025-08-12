@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 
 from ..domain.user.controller.user_controller import UserController
@@ -10,14 +9,8 @@ from ..domain.user.model.user_model import UserCreate, UserLogin, UserResponse, 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # 의존성 주입 함수들
-async def get_user_repository(session: AsyncSession) -> UserRepository:
-    return UserRepository(session)
-
-async def get_user_service(repository: UserRepository = Depends(get_user_repository)) -> UserService:
-    return UserService(repository)
-
-async def get_user_controller(service: UserService = Depends(get_user_service)) -> UserController:
-    return UserController(service)
+def get_user_controller() -> UserController:
+    return UserController()
 
 @router.post("/register", response_model=UserResponse, summary="회원가입")
 async def register(
