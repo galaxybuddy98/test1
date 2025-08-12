@@ -9,6 +9,7 @@ services:
       - ACCOUNT_SERVICE_URL=http://account-service:8002
       - CHATBOT_SERVICE_URL=http://chatbot-service:8003
       - FRONTEND_ORIGIN=https://lme.eripotter.com
+      - CORS_ORIGINS=https://lme.eripotter.com
     restart: always
     depends_on:
       - assessment-service

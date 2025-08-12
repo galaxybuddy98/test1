@@ -19,7 +19,7 @@ class Settings:
         self.database_url = os.getenv("DATABASE_URL", "sqlite:///./app.db")
         
         # CORS 설정
-        self.cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+        self.cors_origins = os.getenv("CORS_ORIGINS", "https://lme.eripotter.com").split(",")
         
         # 로깅 레벨
         self.log_level = os.getenv("LOG_LEVEL", "INFO")

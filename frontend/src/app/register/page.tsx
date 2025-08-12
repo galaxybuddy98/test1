@@ -163,7 +163,7 @@ export default function RegisterPage() {
       };
 
       // Gateway를 통한 auth-service API 호출
-      const apiBaseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const apiBaseURL = process.env.NEXT_PUBLIC_API_URL || 'https://lme.eripotter.com';
               const response = await fetch(`${apiBaseURL}/api/account/register`, {
         method: 'POST',
         headers: {
