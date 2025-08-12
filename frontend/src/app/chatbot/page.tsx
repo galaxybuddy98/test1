@@ -52,7 +52,7 @@ export default function ChatbotPage() {
     setIsLoading(true);
 
     try {
-      const apiBaseURL = 'https://lme.eripotter.com';
+      const apiBaseURL = 'https://api.eripotter.com';
 
       const response = await axios.post(`${apiBaseURL}/api/chatbot/send`, {
         message: inputMessage,
