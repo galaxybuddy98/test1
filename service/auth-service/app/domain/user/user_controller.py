@@ -57,8 +57,22 @@ def create_auth_router() -> APIRouter:
             conn_str = DATABASE_URL.split("?")[0]  # 쿼리 파라미터 제거
             
             try:
-                # Railway에서는 SSL이 기본이므로 ssl='require' 옵션 사용
-                conn = await asyncpg.connect(conn_str, ssl='require')
+                # Railway SSL 연결 (여러 방법 시도)
+                conn = None
+                for ssl_option in ['require', True, False, None]:
+                    try:
+                        if ssl_option is None:
+                            conn = await asyncpg.connect(conn_str)
+                        else:
+                            conn = await asyncpg.connect(conn_str, ssl=ssl_option)
+                        logger.info(f"✅ DB 연결 성공 (SSL: {ssl_option})")
+                        break
+                    except Exception as e:
+                        logger.warning(f"❌ DB 연결 실패 (SSL: {ssl_option}): {e}")
+                        continue
+                
+                if not conn:
+                    raise Exception("모든 연결 방법 실패")
                 
                 # 사용자명 중복 체크
                 existing = await conn.fetchval(
@@ -149,8 +163,22 @@ def create_auth_router() -> APIRouter:
             conn_str = DATABASE_URL.split("?")[0]  # 쿼리 파라미터 제거
             
             try:
-                # Railway에서는 SSL이 기본이므로 ssl='require' 옵션 사용
-                conn = await asyncpg.connect(conn_str, ssl='require')
+                # Railway SSL 연결 (여러 방법 시도)
+                conn = None
+                for ssl_option in ['require', True, False, None]:
+                    try:
+                        if ssl_option is None:
+                            conn = await asyncpg.connect(conn_str)
+                        else:
+                            conn = await asyncpg.connect(conn_str, ssl=ssl_option)
+                        logger.info(f"✅ 로그인 DB 연결 성공 (SSL: {ssl_option})")
+                        break
+                    except Exception as e:
+                        logger.warning(f"❌ 로그인 DB 연결 실패 (SSL: {ssl_option}): {e}")
+                        continue
+                
+                if not conn:
+                    raise Exception("모든 연결 방법 실패")
                 
                 # 사용자 조회
                 user_record = await conn.fetchrow(
