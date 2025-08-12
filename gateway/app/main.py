@@ -124,7 +124,11 @@ async def _relay(method: str, base_url: str, path: str, headers=None, body=None,
 async def auth_proxy(request: Request, path: str):
     """Auth 서비스로 모든 요청을 프록시 (/api/auth/*)"""
     try:
+        logger.info(f"🔍 Auth 프록시 요청: {request.method} {request.url.path}")
+        logger.info(f"🔍 AUTH_SERVICE_URL: {os.getenv('AUTH_SERVICE_URL', 'NOT_SET')}")
+        
         base_url = _get_base_url("auth")
+        logger.info(f"🔍 Base URL: {base_url}")
         
         # 요청 본문 읽기
         body = await request.body()
