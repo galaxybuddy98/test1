@@ -68,7 +68,6 @@ app.add_middleware(
 
 gateway_router = APIRouter(tags=["Gateway API"])
 # gateway_router.include_router(auth_router)  # 사용하지 않음
-# 라우터 등록은 모든 라우트 정의 후에 할 예정
 print("🔧 gateway_router 생성됨!")
 
 # 🪡 파일이 필요한 서비스 목록 (현재는 없음)
@@ -167,6 +166,10 @@ async def auth_proxy(request: Request, path: str):
     except Exception as e:
         logger.error(f"Auth 프록시 오류: {e}")
         raise HTTPException(status_code=500, detail=f"Auth 서비스 연결 실패: {str(e)}")
+
+# ===== gateway_router 등록 =====
+app.include_router(gateway_router)
+print("🔧 gateway_router가 app에 등록됨 (auth_proxy 포함)!")
 
 # ===== 헬스 및 기본 =====
 @gateway_router.get("/health", summary="API v1 헬스 체크")
@@ -391,9 +394,9 @@ async def frontend_proxy_health_check():
     """API 레벨 헬스 체크 - 프론트엔드 /api/health 프록시용"""
     return {"status": "ok"}
 
-# ===== 라우터 등록 (모든 라우트 정의 후) =====
-app.include_router(gateway_router)
-print("🔧 gateway_router가 app에 최종 등록됨!")
+# ===== 라우터 이미 등록됨 =====
+# app.include_router(gateway_router)  # 이미 등록됨
+print("🔧 gateway_router 이미 등록 완료!")
 
 # ===== 로컬 실행 =====
 if __name__ == "__main__":
