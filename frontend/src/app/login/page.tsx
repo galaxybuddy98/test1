@@ -63,36 +63,29 @@ export default function LoginPage() {
       // axios를 사용한 로그인 API 호출 (예시)
       console.log('Axios를 사용하여 로그인 요청 준비 중...');
       
-      // 실제 API 호출 예시 (현재는 주석 처리)
-      // const response = await axios.post('/api/auth/login', {
-      //   username: userData.user_id,
-      //   password: userData.user_pw
-      // });
-      
-      // 현재는 localStorage 방식으로 로그인 처리
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 실제 auth-service API 호출
+      const response = await axios.post('/api/auth/login', {
+        username: userData.user_id,
+        password: userData.user_pw
+      });
 
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-        setErrors({ user_id: '', user_pw: '', general: '등록된 사용자가 없습니다. 회원가입을 먼저 해주세요.' });
-        setIsLoading(false);
-      return;
-    }
-
-    const { username: savedUsername, password: savedPassword } = JSON.parse(storedUser);
-
-      if (userData.user_id === savedUsername && userData.user_pw === savedPassword) {
-      localStorage.setItem('loggedIn', 'true');
+      // 로그인 성공 처리
+      if (response.data && response.data.access_token) {
+        // JWT 토큰 저장
+        localStorage.setItem('auth_token', response.data.access_token);
+        localStorage.setItem('loggedIn', 'true');
+        
+        // Remember Me 처리
         if (rememberMe) {
           localStorage.setItem('rememberUser', userData.user_id);
+        } else {
+          localStorage.removeItem('rememberUser');
         }
         
-        console.log('로그인 성공! Axios를 사용하여 사용자 정보를 가져올 수 있습니다.');
-        
-        // 로그인 성공시에만 about 페이지로 이동
+        console.log('로그인 성공:', response.data);
         router.push('/about');
       } else {
-        setErrors({ user_id: '', user_pw: '', general: '사용자명 또는 비밀번호가 올바르지 않습니다.' });
+        setErrors({ user_id: '', user_pw: '', general: '로그인 응답이 올바르지 않습니다.' });
       }
     } catch (error) {
       console.error('Axios 로그인 요청 중 오류 발생:', error);
@@ -119,8 +112,11 @@ export default function LoginPage() {
 
   // 컴포넌트 초기화 및 axios 설정
   useEffect(() => {
-    // axios 기본 설정
-    axios.defaults.baseURL = 'http://localhost:8080'; // API 서버 주소
+    // axios 기본 설정 (Railway 환경에 맞게)
+    const apiBaseURL = process.env.NODE_ENV === 'production' 
+      ? 'https://api.eripotter.com' 
+      : 'http://localhost:8080';
+    axios.defaults.baseURL = apiBaseURL;
     axios.defaults.timeout = 10000; // 10초 타임아웃
     axios.defaults.headers.common['Content-Type'] = 'application/json';
     
