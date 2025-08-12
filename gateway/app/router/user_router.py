@@ -1,4 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+
+
+
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
@@ -24,10 +28,10 @@ class UserLoginResponse(BaseModel):
     user_id: int
     username: str
 
-# 라우터 생성
-router = APIRouter(prefix="/api/v1/auth", tags=["User Authentication"])
+# 라우터 생성 - prefix 없이 생성
+router = APIRouter(tags=["User Authentication"])
 
-@router.post("/register", response_model=UserResponse, summary="회원가입")
+@router.post("/api/auth/register", response_model=UserResponse, summary="회원가입")
 async def register(user_data: UserRegisterRequest):
     """사용자 회원가입"""
     try:
@@ -41,7 +45,7 @@ async def register(user_data: UserRegisterRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/login", response_model=UserLoginResponse, summary="로그인")
+@router.post("/api/auth/login", response_model=UserLoginResponse, summary="로그인")
 async def login(user_data: UserLoginRequest):
     """사용자 로그인"""
     try:
@@ -55,7 +59,7 @@ async def login(user_data: UserLoginRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/me", response_model=UserResponse, summary="사용자 정보 조회")
+@router.get("/api/auth/me", response_model=UserResponse, summary="사용자 정보 조회")
 async def get_user_info():
     """현재 로그인한 사용자 정보 조회"""
     try:
