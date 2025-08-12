@@ -85,6 +85,12 @@ def _get_base_url(service: str) -> str:
         if not url:
             raise RuntimeError("ENV ASSESSMENT_SERVICE_URL 가 설정되지 않았습니다.")
         return url.rstrip("/")
+    
+    if service == "auth":
+        url = os.getenv("AUTH_SERVICE_URL")
+        if not url:
+            raise RuntimeError("ENV AUTH_SERVICE_URL 가 설정되지 않았습니다.")
+        return url.rstrip("/")
 
     # 필요시 다른 서비스들도 여기에 추가:
     # if service == "report":

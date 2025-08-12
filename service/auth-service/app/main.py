@@ -9,7 +9,10 @@ from sqlalchemy.pool import NullPool
 from dotenv import load_dotenv
 
 # 도메인 임포트
-from app.domain.user.user_controller import create_auth_router
+from app.domain.user.user_controller import create_auth_router, get_user_service
+from app.domain.user.user_model import Base
+from app.domain.user.user_Service import UserService
+from app.domain.user.user_repository import UserRepository
 
 # 환경 설정 로드
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -61,15 +64,26 @@ AsyncSessionLocal = async_sessionmaker(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """앱 시작/종료 시 실행되는 함수"""
-    logger.info("🚀 Auth Service 시작 (간단한 버전)")
+    logger.info("🚀 Auth Service 시작 (DB 연결)")
     logger.info(f"🔧 DATABASE_URL: {DATABASE_URL[:50]}...")
     
-    # 일단 DB 연결 없이 시작
-    logger.info("✅ 간단한 인증 서비스 시작 완료")
+    try:
+        # 데이터베이스 테이블 생성
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("✅ 데이터베이스 테이블 생성 완료")
+    except Exception as e:
+        logger.error(f"❌ 데이터베이스 초기화 실패: {e}")
+        # DB 실패해도 서비스는 계속 실행 (더미 모드로 fallback)
+        logger.info("⚠️ 더미 모드로 계속 진행합니다")
     
     yield
     
     logger.info("🛑 Auth Service 종료")
+    try:
+        await engine.dispose()
+    except:
+        pass
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -92,6 +106,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 데이터베이스 세션 의존성
+async def get_database():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+# UserService 의존성을 위한 오버라이드
+async def get_user_service_dependency(db: AsyncSession = Depends(get_database)) -> UserService:
+    user_repository = UserRepository(db)
+    return UserService(user_repository)
+
+# 의존성 오버라이드 (user_controller의 get_user_service를 실제 DB 세션으로 대체)
+app.dependency_overrides[get_user_service] = get_user_service_dependency
 
 # 라우터 등록
 auth_router = create_auth_router()

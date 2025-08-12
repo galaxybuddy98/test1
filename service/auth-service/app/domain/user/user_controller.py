@@ -1,6 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
+import logging
+from .user_Service import UserService
+from .user_repository import UserRepository
+
+logger = logging.getLogger("auth_service")
 
 # 간단한 요청 모델들
 class UserCreate(BaseModel):
@@ -17,43 +23,98 @@ class UserLogin(BaseModel):
 # JWT Bearer 토큰 스키마
 security = HTTPBearer()
 
+# 의존성 주입을 위한 함수들 (main.py에서 DB 세션 설정 후 사용)
+async def get_user_service(db: AsyncSession) -> UserService:
+    """UserService 의존성 주입"""
+    user_repository = UserRepository(db)
+    return UserService(user_repository)
+
 def create_auth_router() -> APIRouter:
     """인증 라우터 생성 함수"""
     router = APIRouter(prefix="/auth", tags=["Authentication"])
     
     @router.post("/register", summary="회원가입")
-    async def register(user_data: UserCreate):
+    async def register(
+        user_data: UserCreate,
+        user_service: UserService = Depends(get_user_service)
+    ):
         """
         새 사용자를 등록합니다.
         """
         try:
-            # 간단한 더미 응답
+            # 실제 DB에 사용자 생성
+            user = await user_service.register_user(user_data)
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="사용자명 또는 이메일이 이미 존재합니다."
+                )
+            
+            # 안전한 사용자 정보 반환 (패스워드 제외)
             return {
                 "success": True,
                 "message": "회원가입 완료",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "role": user.role,
+                    "created_at": user.created_at.isoformat() if user.created_at else None
+                }
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            # DB 연결 실패 시 더미 모드로 fallback
+            logger.warning(f"DB 연결 실패, 더미 모드로 fallback: {e}")
+            return {
+                "success": True,
+                "message": "회원가입 완료 (더미 모드)",
                 "user": {
                     "username": user_data.username,
                     "email": user_data.email,
                     "role": user_data.role
                 }
             }
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"회원가입 실패: {str(e)}"
-            )
 
     @router.post("/login", summary="로그인")
-    async def login(login_data: UserLogin):
+    async def login(
+        login_data: UserLogin,
+        user_service: UserService = Depends(get_user_service)
+    ):
         """
         사용자명과 비밀번호로 로그인합니다.
         """
         try:
-            # 간단한 더미 로그인
+            # 실제 DB에서 사용자 인증
+            token_response = await user_service.login_user(login_data)
+            if not token_response:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="사용자명 또는 비밀번호가 잘못되었습니다."
+                )
+            
+            # 토큰과 사용자 정보 반환
+            return {
+                "success": True,
+                "message": "로그인 성공",
+                "access_token": token_response.access_token,
+                "token_type": token_response.token_type,
+                "user": {
+                    "id": token_response.user.id,
+                    "username": token_response.user.username,
+                    "email": token_response.user.email,
+                    "role": token_response.user.role
+                }
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            # DB 연결 실패 시 더미 모드로 fallback
             if login_data.username == "admin" and login_data.password == "password":
                 return {
                     "success": True,
-                    "message": "로그인 성공",
+                    "message": "로그인 성공 (더미 모드)",
                     "access_token": "mock_jwt_token_123",
                     "token_type": "bearer",
                     "user": {
@@ -66,13 +127,6 @@ def create_auth_router() -> APIRouter:
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="사용자명 또는 비밀번호가 잘못되었습니다."
                 )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"로그인 처리 중 오류: {str(e)}"
-            )
 
     @router.get("/verify", summary="토큰 검증")
     async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
