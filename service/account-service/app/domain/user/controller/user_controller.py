@@ -1,5 +1,5 @@
-from fastapi import HTTPException, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials
 import logging
 import asyncpg
 import os
@@ -9,9 +9,6 @@ from app.domain.user.repository.user_repository import UserRepository
 from app.domain.user.model.user_model import UserCreate, UserLogin, UserResponse, TokenResponse
 
 logger = logging.getLogger("account_service")
-
-# JWT Bearer 토큰 스키마
-security = HTTPBearer()
 
 class UserController:
     def __init__(self):
