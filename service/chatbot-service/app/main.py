@@ -147,27 +147,25 @@ async def send_message(
         # 세션 ID 생성 또는 사용
         session_id = message_request.session_id or int(time.time())
         
-        # AI 응답 생성
-        ai_result = await langchain_service.generate_response(
-            message=message_request.message,
-            chat_history=[],  # TODO: 실제 채팅 히스토리 조회
-            context=message_request.context or {}
-        )
+        # 더미 응답으로 테스트
+        dummy_response = f"테스트 응답: '{message_request.message}'에 대한 답변입니다."
         
-        logger.info(f"✅ AI 응답 생성 완료: {ai_result['response'][:50]}...")
+        logger.info(f"✅ 더미 응답 생성 완료: {dummy_response}")
         
         return LangChainResponse(
-            response=ai_result["response"],
+            response=dummy_response,
             session_id=session_id,
             message_id=int(time.time()),  # 임시 message_id
-            tokens_used=ai_result.get("tokens_used"),
-            processing_time=ai_result.get("processing_time")
+            tokens_used=0,
+            processing_time=0.1
         )
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ 메시지 처리 오류: {e}")
+        logger.error(f"❌ 에러 타입: {type(e)}")
+        logger.error(f"❌ 에러 상세: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"메시지 처리 중 오류가 발생했습니다: {str(e)}"
