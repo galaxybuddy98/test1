@@ -18,7 +18,7 @@ def create_auth_router() -> APIRouter:
     """인증 라우터 생성 함수"""
     router = APIRouter(prefix="/auth", tags=["Authentication"])
     
-    @router.post("/register", response_model=UserResponse, summary="회원가입")
+    @router.post("/register", summary="회원가입")
     async def register(
         user_data: UserCreate,
         user_service: UserService = Depends(get_user_service)
@@ -39,7 +39,7 @@ def create_auth_router() -> APIRouter:
             )
         return user
 
-    @router.post("/login", response_model=TokenResponse, summary="로그인")
+    @router.post("/login", summary="로그인")
     async def login(
         login_data: UserLogin,
         user_service: UserService = Depends(get_user_service)
@@ -57,7 +57,7 @@ def create_auth_router() -> APIRouter:
             )
         return token_response
 
-    @router.get("/verify", response_model=UserResponse, summary="토큰 검증")
+    @router.get("/verify", summary="토큰 검증")
     async def verify_token(
         credentials: HTTPAuthorizationCredentials = Depends(security),
         user_service: UserService = Depends(get_user_service)
@@ -75,7 +75,7 @@ def create_auth_router() -> APIRouter:
             )
         return user
 
-    @router.get("/me", response_model=UserResponse, summary="내 정보 조회")
+    @router.get("/me", summary="내 정보 조회")
     async def get_current_user_info(
         credentials: HTTPAuthorizationCredentials = Depends(security),
         user_service: UserService = Depends(get_user_service)
@@ -104,9 +104,6 @@ def create_auth_router() -> APIRouter:
         }
     
     return router
-
-# 라우터 생성
-auth_router = create_auth_router()
 
 # UserController 클래스 (구조적 정리용, 실제 라우팅은 위의 함수들 사용)
 class UserController:
