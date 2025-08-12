@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
@@ -24,7 +24,7 @@ class UserModel(Base):
 # Pydantic 요청/응답 모델들
 class UserCreate(BaseModel):
     username: str
-    email: EmailStr
+    email: str  # EmailStr 대신 일반 str 사용
     password: str
     company_id: Optional[str] = None
     role: str = "user"
