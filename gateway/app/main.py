@@ -120,9 +120,9 @@ async def _relay(method: str, base_url: str, path: str, headers=None, body=None,
 
 
 # ===== Auth 서비스 프록시 =====
-@gateway_router.api_route("/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@gateway_router.api_route("/api/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def auth_proxy(request: Request, path: str):
-    """Auth 서비스로 모든 요청을 프록시"""
+    """Auth 서비스로 모든 요청을 프록시 (/api/auth/*)"""
     try:
         base_url = _get_base_url("auth")
         
@@ -134,10 +134,13 @@ async def auth_proxy(request: Request, path: str):
         headers.pop("host", None)
         headers.pop("content-length", None)
         
+        # auth-service는 /api/v1/auth/* 경로를 사용하므로 경로 변환
+        auth_service_path = f"api/v1/auth/{path}"
+        
         response = await _relay(
             method=request.method,
             base_url=base_url,
-            path=path,
+            path=auth_service_path,
             headers=headers,
             body=body,
             params=dict(request.query_params)
