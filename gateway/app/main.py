@@ -125,9 +125,17 @@ async def auth_proxy(request: Request, path: str):
     """Auth 서비스로 모든 요청을 프록시 (/api/auth/*)"""
     try:
         logger.info(f"🔍 Auth 프록시 요청: {request.method} {request.url.path}")
-        logger.info(f"🔍 AUTH_SERVICE_URL: {os.getenv('AUTH_SERVICE_URL', 'NOT_SET')}")
+        auth_url = os.getenv('AUTH_SERVICE_URL', 'NOT_SET')
+        logger.info(f"🔍 AUTH_SERVICE_URL: {auth_url}")
         
-        base_url = _get_base_url("auth")
+        # 임시 fallback (Railway 환경변수 문제 시)
+        if auth_url == 'NOT_SET':
+            # auth-service의 실제 도메인
+            auth_url = "https://auth-service-production-ce3c.up.railway.app"
+            logger.info(f"🔧 임시 AUTH_SERVICE_URL 사용: {auth_url}")
+            base_url = auth_url
+        else:
+            base_url = _get_base_url("auth")
         logger.info(f"🔍 Base URL: {base_url}")
         
         # 요청 본문 읽기
