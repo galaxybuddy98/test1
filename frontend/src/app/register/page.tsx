@@ -153,24 +153,17 @@ export default function RegisterPage() {
     });
 
     try {
-      // 백엔드로 전송할 데이터 준비
+      // auth-service 형식에 맞는 데이터 준비
       const requestData = {
-        company: {
-          company_id: registerData.company_id,
-          company_name: registerData.company_name || null,
-          industry: registerData.industry,
-          company_category: registerData.company_category
-        },
-        admin: {
-          username: registerData.admin_username,
-          email: registerData.admin_email,
-          password: registerData.admin_password
-        },
-        timestamp: new Date().toISOString()
+        username: registerData.admin_username,
+        email: registerData.admin_email,
+        password: registerData.admin_password,
+        company_id: registerData.company_id,
+        role: "admin"
       };
 
-      // 실제 백엔드 API 호출
-      const response = await fetch('/api/signup', {
+      // auth-service API 호출
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
