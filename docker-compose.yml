@@ -11,7 +11,7 @@ services:
     restart: always
     depends_on:
       - assessment-service
-      - auth-service
+      - account-service
       - chatbot-service
       - monitoring-service
       - report-service
@@ -33,12 +33,12 @@ services:
     networks:
       - app-network
 
-  auth-service:
-    build: ./service/auth-service
+  account-service:
+    build: ./service/account-service
     ports:
       - "8002:8002"
     volumes:
-      - ./service/auth-service:/app
+      - ./service/account-service:/app
     environment:
       - PYTHONUNBUFFERED=1
     restart: always

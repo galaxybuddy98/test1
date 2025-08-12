@@ -61,6 +61,12 @@ async def log_requests(request: Request, call_next):
 async def root():
     return {"service": "Assessment Service", "version": "1.0.0", "status": "running"}
 
+# Router import
+from .router.assessment_router import router as assessment_router
+
+# Router 등록
+app.include_router(assessment_router)
+
 @app.get("/health", include_in_schema=False)
 async def health_check():
     return {"status": "healthy", "service": "Assessment Service", "version": "1.0.0"}
