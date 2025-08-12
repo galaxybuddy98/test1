@@ -178,6 +178,8 @@ async def auth_proxy(request: Request, path: str):
 async def chatbot_proxy(request: Request, path: str):
     """Chatbot 서비스로 모든 요청을 프록시 (/api/chatbot/*)"""
     try:
+        logger.error(f"🚨🤖 CHATBOT PROXY 호출됨!!! - {request.method} {request.url.path} - path={path}")
+        print(f"🚨🤖 CHATBOT PROXY 호출됨!!! - {request.method} {request.url.path} - path={path}")
         logger.info(f"🤖 Chatbot 프록시 요청: {request.method} {request.url.path}")
         chatbot_url = os.getenv('CHATBOT_SERVICE_URL', 'NOT_SET')
         logger.info(f"🔍 CHATBOT_SERVICE_URL: {chatbot_url}")
@@ -233,6 +235,10 @@ for route in app.routes:
     elif hasattr(route, 'path'):
         print(f"  - {route.path}")
 print("🔍 라우트 확인 완료")
+
+# 라우트 우선순위 경고
+print("⚠️ 라우트 우선순위: 더 구체적인 라우트가 먼저 등록되어야 함")
+print("   /api/chatbot/{path:path} vs /{service}/{path:path}")
 
 # ===== 헬스 및 기본 =====
 @gateway_router.get("/health", summary="API v1 헬스 체크")
@@ -329,8 +335,9 @@ debug_routes()
 
 
 # ===== 동적 프록시 라우팅 =====
-@gateway_router.get("/{service}/{path:path}", summary="GET 프록시")
-async def proxy_get(service: str, path: str, request: Request):
+# 임시 비활성화: 구체적인 라우트와 충돌 방지
+# @gateway_router.get("/{service}/{path:path}", summary="GET 프록시")
+async def proxy_get_disabled(service: str, path: str, request: Request):
     try:
         headers = dict(request.headers)
         base_url = _get_base_url(service)
@@ -344,8 +351,9 @@ async def proxy_get(service: str, path: str, request: Request):
         )
 
 
-@gateway_router.post("/{service}/{path:path}", summary="POST 프록시")
-async def proxy_post(
+# 임시 비활성화: 구체적인 라우트와 충돌 방지
+# @gateway_router.post("/{service}/{path:path}", summary="POST 프록시")
+async def proxy_post_disabled(
     service: str,
     path: str,
     request: Request,
@@ -398,8 +406,9 @@ async def proxy_post(
         )
 
 
-@gateway_router.put("/{service}/{path:path}", summary="PUT 프록시")
-async def proxy_put(service: str, path: str, request: Request):
+# 임시 비활성화: 구체적인 라우트와 충돌 방지
+# @gateway_router.put("/{service}/{path:path}", summary="PUT 프록시")
+async def proxy_put_disabled(service: str, path: str, request: Request):
     try:
         headers = dict(request.headers)
         body = await request.body()
@@ -414,8 +423,9 @@ async def proxy_put(service: str, path: str, request: Request):
         )
 
 
-@gateway_router.delete("/{service}/{path:path}", summary="DELETE 프록시")
-async def proxy_delete(service: str, path: str, request: Request):
+# 임시 비활성화: 구체적인 라우트와 충돌 방지
+# @gateway_router.delete("/{service}/{path:path}", summary="DELETE 프록시")
+async def proxy_delete_disabled(service: str, path: str, request: Request):
     try:
         headers = dict(request.headers)
         body = await request.body()
@@ -430,8 +440,9 @@ async def proxy_delete(service: str, path: str, request: Request):
         )
 
 
-@gateway_router.patch("/{service}/{path:path}", summary="PATCH 프록시")
-async def proxy_patch(service: str, path: str, request: Request):
+# 임시 비활성화: 구체적인 라우트와 충돌 방지  
+# @gateway_router.patch("/{service}/{path:path}", summary="PATCH 프록시")
+async def proxy_patch_disabled(service: str, path: str, request: Request):
     try:
         headers = dict(request.headers)
         body = await request.body()
