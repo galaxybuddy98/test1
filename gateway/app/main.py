@@ -152,35 +152,55 @@ async def account_proxy(request: Request, path: str):
     try:
         logger.info(f"🔍 Account 프록시 요청: {request.method} {request.url.path}")
         
-        # 로그인 요청인 경우 직접 처리 (account-service가 사용 불가능하므로)
-        if path == "login" and request.method == "POST":
-            logger.info("🔧 로그인 요청을 직접 처리합니다.")
+        # 로그인/회원가입 요청인 경우 직접 처리 (account-service가 사용 불가능하므로)
+        if (path == "login" or path == "register") and request.method == "POST":
+            logger.info(f"🔧 {path} 요청을 직접 처리합니다.")
             body = await request.body()
             if body:
                 import json
                 try:
                     data = json.loads(body)
-                    logger.info(f"🔧 로그인 데이터: {data}")
+                    logger.info(f"🔧 {path} 데이터: {data}")
                     
-                    # 간단한 로그인 로직 (실제로는 JWT 토큰 생성 등이 필요)
-                    if (data.get("email") or data.get("username")) and data.get("password"):
-                        # username 또는 email 중 하나라도 있으면 로그인 성공으로 처리
-                        username = data.get("username") or data.get("email", "").split('@')[0]
-                        return JSONResponse(
-                            status_code=200,
-                            content={
-                                "access_token": "dummy_token_12345",
-                                "token_type": "bearer",
-                                "user_id": 1,
-                                "username": username,
-                                "message": "로그인 성공"
-                            }
-                        )
-                    else:
-                        return JSONResponse(
-                            status_code=400,
-                            content={"detail": "사용자명(또는 이메일)과 비밀번호가 필요합니다."}
-                        )
+                    if path == "login":
+                        # 로그인 로직
+                        if (data.get("email") or data.get("username")) and data.get("password"):
+                            username = data.get("username") or data.get("email", "").split('@')[0]
+                            return JSONResponse(
+                                status_code=200,
+                                content={
+                                    "access_token": "dummy_token_12345",
+                                    "token_type": "bearer",
+                                    "user_id": 1,
+                                    "username": username,
+                                    "message": "로그인 성공"
+                                }
+                            )
+                        else:
+                            return JSONResponse(
+                                status_code=400,
+                                content={"detail": "사용자명(또는 이메일)과 비밀번호가 필요합니다."}
+                            )
+                    
+                    elif path == "register":
+                        # 회원가입 로직
+                        required_fields = ["username", "email", "password"]
+                        if all(field in data for field in required_fields):
+                            return JSONResponse(
+                                status_code=201,
+                                content={
+                                    "id": 1,
+                                    "username": data.get("username"),
+                                    "email": data.get("email"),
+                                    "message": "회원가입이 완료되었습니다."
+                                }
+                            )
+                        else:
+                            return JSONResponse(
+                                status_code=400,
+                                content={"detail": "사용자명, 이메일, 비밀번호가 모두 필요합니다."}
+                            )
+                    
                 except json.JSONDecodeError:
                     return JSONResponse(
                         status_code=400,
