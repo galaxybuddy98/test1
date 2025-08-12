@@ -17,7 +17,7 @@ COPY app/ /app/app
 
 # 4) 로컬에서도 바로 뜨게 기본 포트 지정(로컬 전용), Railway에선 ${PORT} 사용
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
+ENV PORT=8002
 
 # 5) (선택) 헬스체크: /health 엔드포인트 구현해두었을 때
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \

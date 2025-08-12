@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class GatewayTester:
     """게이트웨이 테스트 클래스"""
     
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8080"):
         self.base_url = base_url
         self.client = httpx.AsyncClient(timeout=30.0)
         self.test_results = []
@@ -258,7 +258,7 @@ async def main():
     import sys
     
     # 명령행 인수 처리
-    base_url = "http://localhost:8000"
+    base_url = "http://localhost:8080"
     if len(sys.argv) > 1:
         base_url = sys.argv[1]
     
