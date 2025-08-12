@@ -1,5 +1,6 @@
 import httpx
 import logging
+import os
 from typing import Optional, Dict, Any
 from .service_type import ServiceType
 
@@ -10,14 +11,15 @@ class ServiceDiscovery:
     서비스 디스커버리 및 요청 프록시 클래스
     """
     
-    # 서비스별 기본 URL 매핑
+    # 서비스별 기본 URL 매핑 (모든 서비스)
     SERVICE_URLS = {
-        ServiceType.USER: "http://localhost:8001",
-        ServiceType.AUTH: "http://localhost:8002", 
-        ServiceType.PAYMENT: "http://localhost:8003",
-        ServiceType.NOTIFICATION: "http://localhost:8004",
-        ServiceType.FILE: "http://localhost:8005",
-        ServiceType.REPORT: "http://localhost:8006",
+        ServiceType.AUTH: os.getenv("ACCOUNT_SERVICE_URL", "http://localhost:8002"), 
+        ServiceType.CHATBOT: os.getenv("CHATBOT_SERVICE_URL", "http://localhost:8003"),
+        ServiceType.ASSESSMENT: os.getenv("ASSESSMENT_SERVICE_URL", "http://localhost:8001"),
+        ServiceType.REQUEST: os.getenv("REQUEST_SERVICE_URL", "http://localhost:8004"),
+        ServiceType.RESPONSE: os.getenv("RESPONSE_SERVICE_URL", "http://localhost:8005"),
+        ServiceType.REPORT: os.getenv("REPORT_SERVICE_URL", "http://localhost:8006"),
+        ServiceType.MONITORING: os.getenv("MONITORING_SERVICE_URL", "http://localhost:8007"),
     }
     
     def __init__(self, service_type: ServiceType):

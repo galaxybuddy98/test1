@@ -86,9 +86,9 @@ def _get_base_url(service: str) -> str:
         return url.rstrip("/")
     
     if service == "auth":
-        url = os.getenv("AUTH_SERVICE_URL")
+        url = os.getenv("ACCOUNT_SERVICE_URL")
         if not url:
-            raise RuntimeError("ENV AUTH_SERVICE_URL 가 설정되지 않았습니다.")
+            raise RuntimeError("ENV ACCOUNT_SERVICE_URL 가 설정되지 않았습니다.")
         return url.rstrip("/")
     
     if service == "chatbot":
@@ -97,9 +97,29 @@ def _get_base_url(service: str) -> str:
             raise RuntimeError("ENV CHATBOT_SERVICE_URL 가 설정되지 않았습니다.")
         return url.rstrip("/")
 
-    # 필요시 다른 서비스들도 여기에 추가:
-    # if service == "report":
-    #     url = os.getenv("REPORT_SERVICE_URL")
+    if service == "request":
+        url = os.getenv("REQUEST_SERVICE_URL")
+        if not url:
+            raise RuntimeError("ENV REQUEST_SERVICE_URL 가 설정되지 않았습니다.")
+        return url.rstrip("/")
+
+    if service == "response":
+        url = os.getenv("RESPONSE_SERVICE_URL")
+        if not url:
+            raise RuntimeError("ENV RESPONSE_SERVICE_URL 가 설정되지 않았습니다.")
+        return url.rstrip("/")
+
+    if service == "report":
+        url = os.getenv("REPORT_SERVICE_URL")
+        if not url:
+            raise RuntimeError("ENV REPORT_SERVICE_URL 가 설정되지 않았습니다.")
+        return url.rstrip("/")
+
+    if service == "monitoring":
+        url = os.getenv("MONITORING_SERVICE_URL")
+        if not url:
+            raise RuntimeError("ENV MONITORING_SERVICE_URL 가 설정되지 않았습니다.")
+        return url.rstrip("/")
 
     raise HTTPException(status_code=404, detail=f"Unknown service: {service}")
 
@@ -130,14 +150,14 @@ async def auth_proxy(request: Request, path: str):
     """Auth 서비스로 모든 요청을 프록시 (/api/auth/*)"""
     try:
         logger.info(f"🔍 Auth 프록시 요청: {request.method} {request.url.path}")
-        auth_url = os.getenv('AUTH_SERVICE_URL', 'NOT_SET')
-        logger.info(f"🔍 AUTH_SERVICE_URL: {auth_url}")
+        auth_url = os.getenv('ACCOUNT_SERVICE_URL', 'NOT_SET')
+        logger.info(f"🔍 ACCOUNT_SERVICE_URL: {auth_url}")
         
         # 임시 fallback (Railway 환경변수 문제 시)
         if auth_url == 'NOT_SET':
-            # auth-service의 실제 도메인
-            auth_url = "https://auth-service-production-ce3c.up.railway.app"
-            logger.info(f"🔧 임시 AUTH_SERVICE_URL 사용: {auth_url}")
+            # account-service의 실제 도메인
+            auth_url = "https://account-service-production-ce3c.up.railway.app"
+            logger.info(f"🔧 임시 ACCOUNT_SERVICE_URL 사용: {auth_url}")
             base_url = auth_url
         else:
             base_url = _get_base_url("auth")

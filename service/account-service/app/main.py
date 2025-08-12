@@ -26,7 +26,7 @@ logger = logging.getLogger("account_service")
 # 데이터베이스 설정
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://user:password@localhost:5432/eripotter_db"
+    os.getenv("DEFAULT_DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/eripotter_db")
 )
 
 # Railway 환경에서 postgres://를 postgresql+asyncpg://로 변경 (sslmode 제거)
@@ -149,8 +149,6 @@ async def get_database():
 
 # Router import
 from app.router.user_router import router as user_router
-
-# 의존성 오버라이드 제거 - Controller에서 직접 DB 연결 처리
 
 # Router 등록
 app.include_router(user_router, prefix="/api/v1")
