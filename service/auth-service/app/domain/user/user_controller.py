@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
     username: str
     email: str
     password: str
-    company_id: str = None
+    company_id: str | None = None 
     role: str = "user"
 
 class UserLogin(BaseModel):
@@ -51,15 +51,14 @@ def create_auth_router() -> APIRouter:
             # 데이터베이스 연결
             DATABASE_URL = os.getenv("DATABASE_URL", "")
             if "postgres://" in DATABASE_URL:
-                DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://")
-            if "sslmode" not in DATABASE_URL:
-                DATABASE_URL += "?sslmode=require"
+                DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
             
-            # AsyncPG로 직접 연결 (SQLAlchemy 없이)
-            conn_str = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+            # AsyncPG 연결 (sslmode 제거)
+            conn_str = DATABASE_URL.split("?")[0]  # 쿼리 파라미터 제거
             
             try:
-                conn = await asyncpg.connect(conn_str)
+                # Railway에서는 SSL이 기본이므로 ssl='require' 옵션 사용
+                conn = await asyncpg.connect(conn_str, ssl='require')
                 
                 # 사용자명 중복 체크
                 existing = await conn.fetchval(
@@ -144,14 +143,14 @@ def create_auth_router() -> APIRouter:
             # 데이터베이스 연결
             DATABASE_URL = os.getenv("DATABASE_URL", "")
             if "postgres://" in DATABASE_URL:
-                DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://")
-            if "sslmode" not in DATABASE_URL:
-                DATABASE_URL += "?sslmode=require"
+                DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
             
-            conn_str = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+            # AsyncPG 연결 (sslmode 제거)
+            conn_str = DATABASE_URL.split("?")[0]  # 쿼리 파라미터 제거
             
             try:
-                conn = await asyncpg.connect(conn_str)
+                # Railway에서는 SSL이 기본이므로 ssl='require' 옵션 사용
+                conn = await asyncpg.connect(conn_str, ssl='require')
                 
                 # 사용자 조회
                 user_record = await conn.fetchrow(
