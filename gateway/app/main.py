@@ -90,6 +90,12 @@ def _get_base_url(service: str) -> str:
         if not url:
             raise RuntimeError("ENV AUTH_SERVICE_URL 가 설정되지 않았습니다.")
         return url.rstrip("/")
+    
+    if service == "chatbot":
+        url = os.getenv("CHATBOT_SERVICE_URL")
+        if not url:
+            raise RuntimeError("ENV CHATBOT_SERVICE_URL 가 설정되지 않았습니다.")
+        return url.rstrip("/")
 
     # 필요시 다른 서비스들도 여기에 추가:
     # if service == "report":
@@ -167,9 +173,58 @@ async def auth_proxy(request: Request, path: str):
         logger.error(f"Auth 프록시 오류: {e}")
         raise HTTPException(status_code=500, detail=f"Auth 서비스 연결 실패: {str(e)}")
 
+# ===== Chatbot 서비스 프록시 =====
+@gateway_router.api_route("/api/chatbot/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def chatbot_proxy(request: Request, path: str):
+    """Chatbot 서비스로 모든 요청을 프록시 (/api/chatbot/*)"""
+    try:
+        logger.info(f"🤖 Chatbot 프록시 요청: {request.method} {request.url.path}")
+        chatbot_url = os.getenv('CHATBOT_SERVICE_URL', 'NOT_SET')
+        logger.info(f"🔍 CHATBOT_SERVICE_URL: {chatbot_url}")
+        
+        # 임시 fallback (Railway 환경변수 문제 시)
+        if chatbot_url == 'NOT_SET':
+            # chatbot-service의 실제 도메인으로 교체 필요
+            chatbot_url = "https://chatbot-service-production-xxxx.up.railway.app"
+            logger.info(f"🔧 임시 CHATBOT_SERVICE_URL 사용: {chatbot_url}")
+            base_url = chatbot_url
+        else:
+            base_url = _get_base_url("chatbot")
+        logger.info(f"🔍 Base URL: {base_url}")
+        
+        # 요청 본문 읽기
+        body = await request.body()
+        
+        # 헤더에서 불필요한 것들 제거
+        headers = dict(request.headers)
+        headers.pop("host", None)
+        headers.pop("content-length", None)
+        
+        # chatbot-service는 /api/v1/chat/* 경로를 사용하므로 경로 변환
+        chatbot_service_path = f"api/v1/chat/{path}"
+        
+        response = await _relay(
+            method=request.method,
+            base_url=base_url,
+            path=chatbot_service_path,
+            headers=headers,
+            body=body,
+            params=dict(request.query_params)
+        )
+        
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=dict(response.headers)
+        )
+        
+    except Exception as e:
+        logger.error(f"Chatbot 프록시 오류: {e}")
+        raise HTTPException(status_code=500, detail=f"Chatbot 서비스 연결 실패: {str(e)}")
+
 # ===== gateway_router 등록 =====
 app.include_router(gateway_router)
-print("🔧 gateway_router가 app에 등록됨 (auth_proxy 포함)!")
+print("🔧 gateway_router가 app에 등록됨 (auth_proxy, chatbot_proxy 포함)!")
 
 # ===== 헬스 및 기본 =====
 @gateway_router.get("/health", summary="API v1 헬스 체크")

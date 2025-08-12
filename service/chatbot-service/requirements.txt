@@ -1,0 +1,26 @@
+# FastAPI 및 서버
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# LangChain 및 AI
+langchain
+langchain-openai
+langchain-community
+openai
+
+# 데이터베이스 (SQLAlchemy 포함)
+sqlalchemy
+asyncpg
+psycopg2-binary
+
+# 환경 설정
+python-dotenv
+
+# HTTP 클라이언트
+httpx
+aiofiles
+
+# 기타 유틸리티
+pydantic
+python-dateutil
