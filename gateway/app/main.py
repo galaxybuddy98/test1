@@ -173,6 +173,14 @@ async def auth_proxy(request: Request, path: str):
         logger.error(f"Auth 프록시 오류: {e}")
         raise HTTPException(status_code=500, detail=f"Auth 서비스 연결 실패: {str(e)}")
 
+# ===== 테스트용 간단한 chatbot 라우트 =====
+@gateway_router.get("/api/chatbot/test")
+async def chatbot_test():
+    """chatbot 라우트 테스트"""
+    logger.error("🚨 /api/chatbot/test 라우트 호출됨!!!")
+    print("🚨 /api/chatbot/test 라우트 호출됨!!!")
+    return {"message": "chatbot 라우트 작동 중!", "service": "gateway->chatbot"}
+
 # ===== Chatbot 서비스 프록시 =====
 @gateway_router.api_route("/api/chatbot/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def chatbot_proxy(request: Request, path: str):
@@ -467,6 +475,13 @@ async def root_health_check():
 async def frontend_proxy_health_check():
     """API 레벨 헬스 체크 - 프론트엔드 /api/health 프록시용"""
     return {"status": "ok"}
+
+@app.get("/api/chatbot/direct-test")
+async def direct_chatbot_test():
+    """app 레벨 직접 chatbot 테스트"""
+    logger.error("🚨 app 레벨 chatbot 테스트 호출됨!!!")
+    print("🚨 app 레벨 chatbot 테스트 호출됨!!!")
+    return {"message": "app 레벨 chatbot 라우트 작동!", "level": "app"}
 
 # ===== 라우터 이미 등록 완료 =====
 print("🔧 모든 라우터 등록 완료!")
