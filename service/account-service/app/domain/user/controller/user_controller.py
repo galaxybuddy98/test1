@@ -166,7 +166,7 @@ class UserController:
                 detail="로그인 중 오류가 발생했습니다."
             )
     
-    async def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(security)) -> UserResponse:
+    async def get_current_user(self, credentials: HTTPAuthorizationCredentials) -> UserResponse:
         """현재 사용자 정보 조회"""
         try:
             token = credentials.credentials
